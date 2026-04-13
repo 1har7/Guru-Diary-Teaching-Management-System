@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecturer Login - Guru Diary</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/guru.css' %}">
+    <style>
+        /* Pre-login: respect OS preference since user theme is not known yet. */
+        @media (prefers-color-scheme: dark) { body { color-scheme: dark; } }
+    </style>
+</head>
+<body>
+    <div class="auth-shell">
+        <div class="card auth-card">
+            <div class="head">
+                <div class="kicker">Lecturer Login</div>
+                <div class="appname">Guru Diary</div>
+                <p class="sub">Sign in to your workspace</p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert">Invalid username or password.</div>
+                <div style="height: 10px;"></div>
+            {% endif %}
+
+            <form method="post" action="{% url 'login' %}" class="stack">
+                {% csrf_token %}
+                <div class="field">
+                    <label for="id_username">Username</label>
+                    <input class="input" type="text" name="username" id="id_username" required autofocus>
+                </div>
+                <div class="field">
+                    <label for="id_password">Password</label>
+                    <input class="input" type="password" name="password" id="id_password" required>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+                <button type="submit" class="btn btn-primary">Sign in</button>
+            </form>
+
+            <div style="height: 14px;"></div>
+            <div class="muted">
+                No account? <a href="{% url 'register' %}">Create lecturer account</a><br>
+                Admin? <a href="{% url 'admin_portal:login' %}">Go to admin login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

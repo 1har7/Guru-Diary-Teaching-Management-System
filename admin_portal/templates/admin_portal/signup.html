@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Signup - Guru Diary</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/guru.css' %}">
+    <style>
+        @media (prefers-color-scheme: dark) { body { color-scheme: dark; } }
+        body {
+            background:
+                radial-gradient(1000px 600px at 20% 10%, rgba(13, 71, 161, 0.22), transparent 60%),
+                radial-gradient(900px 520px at 80% 20%, rgba(26, 115, 232, 0.18), transparent 55%),
+                linear-gradient(180deg, var(--bg0), var(--bg1));
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-shell">
+        <div class="card auth-card">
+            <div class="head">
+                <div class="kicker">Admin Portal</div>
+                <div class="appname">Guru Diary</div>
+                <p class="sub">Create the first admin account</p>
+            </div>
+
+            {% if errors %}
+                <div class="alert">
+                    Please fix the following:
+                    <ul style="margin: 8px 0 0 18px;">
+                        {% for err in errors %}<li>{{ err }}</li>{% endfor %}
+                    </ul>
+                </div>
+                <div style="height: 10px;"></div>
+            {% endif %}
+
+            {% if signup_available %}
+                <form method="post" action="{% url 'admin_portal:signup' %}" class="stack">
+                    {% csrf_token %}
+                    <div class="field">
+                        <label for="id_username">Username</label>
+                        <input class="input" type="text" name="username" id="id_username" placeholder="Choose a username" required autofocus value="{{ request.POST.username }}">
+                    </div>
+                    <div class="field">
+                        <label for="id_email">Email</label>
+                        <input class="input" type="email" name="email" id="id_email" placeholder="your@email.com" required value="{{ request.POST.email }}">
+                    </div>
+                    <div class="field">
+                        <label for="id_password1">Password</label>
+                        <input class="input" type="password" name="password1" id="id_password1" placeholder="At least 8 characters" required>
+                    </div>
+                    <div class="field">
+                        <label for="id_password2">Confirm password</label>
+                        <input class="input" type="password" name="password2" id="id_password2" placeholder="Repeat password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create admin account</button>
+                </form>
+            {% else %}
+                <div class="muted">An admin account already exists. Use the login page to sign in.</div>
+                <div style="height: 12px;"></div>
+                <a href="{% url 'admin_portal:login' %}" class="btn">Go to admin login</a>
+            {% endif %}
+
+            <div style="height: 14px;"></div>
+            <div class="muted">
+                <a href="{% url 'admin_portal:login' %}">&lt;- Back to admin login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

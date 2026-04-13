@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Guru Diary</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/guru.css' %}">
+</head>
+<body class="{% if prefs.theme == 'dark' %}dark{% endif %}">
+    <div class="topbar">
+        <div class="container inner">
+            <div class="brand">
+                <div class="title">Guru Diary</div>
+                <div class="subtitle">Lecturer • Welcome</div>
+            </div>
+            <div class="top-actions">
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-ghost">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <main class="container" style="padding: 18px 0 32px;">
+        <div class="grid-2">
+            <section class="card">
+                <div class="pad">
+                    <h2>Welcome</h2>
+                    <div class="muted">Signed in as <b>{{ user.get_full_name|default:user.username }}</b>.</div>
+                    <div style="height: 12px;"></div>
+                    <a class="btn btn-primary" href="{% url 'app' %}">Open Workspace</a>
+                    <div class="muted" style="margin-top: 10px;">Tabs: Timetable • Diary • Records • Settings</div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="pad">
+                    <h2>Daily Quote</h2>
+                    <div style="font-family: var(--font-serif); font-size: 18px; line-height: 1.45;">
+                        "{{ daily_quote }}"
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="card" style="margin-top: 16px;">
+            <div class="pad">
+                <h2>Estimated Progress</h2>
+                {% if progress.percent is not None %}
+                    <div class="row" style="margin-top: 6px;">
+                        <div style="font-weight: 900; font-size: 18px;">{{ progress.percent }}%</div>
+                        <div style="flex: 1; min-width: 240px;" class="progress-outer">
+                            <div class="progress-inner" data-progress="{{ progress.percent }}"></div>
+                        </div>
+                    </div>
+                    <div class="muted" style="margin-top: 10px;">
+                        You should be around {{ progress.percent }}% completion by now ({{ progress.counts.elapsed_working_days }}/{{ progress.counts.total_working_days }} working days elapsed).
+                    </div>
+                {% else %}
+                    <div class="muted">Semester dates are not configured yet.</div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <script src="{% static 'core/guru.js' %}"></script>
+</body>
+</html>
+

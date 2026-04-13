@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecturer Dashboard - Guru Diary</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/guru.css' %}">
+    <style>
+        :root {
+            --card-bg: #ffffff;
+            --panel-bg: #f8f9fa;
+            --border: #eeeeee;
+            --progress-bg: #eeeeee;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        body.dark {
+            background: #121212;
+            --card-bg: #1e1e1e;
+            --panel-bg: #232323;
+            --border: #333333;
+            --progress-bg: #2a2a2a;
+        }
+        body.dark .tabs {
+            background: rgba(255,255,255,0.06);
+            border-bottom-color: rgba(255,255,255,0.12);
+        }
+        body.dark .content-section {
+            background: #1e1e1e;
+            color: #e6e6e6;
+        }
+        body.dark .content-section h2 {
+            color: #8ab4f8;
+        }
+        body.dark .welcome { color: #ddd; }
+        body.dark p, body.dark label, body.dark small { color: #ddd; }
+        body.dark table {
+            background: #1e1e1e;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.45);
+        }
+        body.dark th {
+            background: linear-gradient(135deg, #2b2b2b 0%, #242424 100%);
+            color: #e6e6e6;
+        }
+        body.dark td { border-bottom: 1px solid #333; color: #e6e6e6; }
+        body.dark tr:nth-child(even) { background: #232323; }
+        body.dark tr:hover { background: #2a2a2a; }
+        body.dark input, body.dark select, body.dark textarea {
+            background: #2a2a2a;
+            color: #e6e6e6;
+            border-color: #444;
+        }
+        body.dark input:focus, body.dark select:focus, body.dark textarea:focus {
+            outline: none;
+            border-color: #8ab4f8;
+            box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.25);
+        }
+        body.dark ::placeholder { color: #b0b0b0; }
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .tab {
+            flex: 1;
+            padding: 18px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tab:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-bottom: 3px solid #4CAF50;
+        }
+        .tab-content {
+            display: none;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        .welcome {
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+        .content-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .content-section h2 {
+            margin-top: 0;
+            color: #1a73e8;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1557b0;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #495057;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        tr:hover {
+            background: #e3f2fd;
+            transition: background 0.3s ease;
+        }
+        .grid-table {
+            border: 2px solid #1a73e8;
+            box-shadow: 0 5px 20px rgba(26, 115, 232, 0.2);
+        }
+        .grid-table th {
+            background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+            color: white;
+        }
+        .grid-table .time-col {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-weight: 700;
+            color: #1a73e8;
+        }
+        .grid-table .cell-filled {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            border-left: 4px solid #28a745;
+        }
+        .grid-table .cell-free {
+            background: #fafafa;
+            color: #999;
+        }
+    </style>
+</head>
+<body class="{% if prefs.theme == 'dark' %}dark{% endif %}">
+    <div class="header">
+        <h1>Guru Diary - Lecturer Dashboard</h1>
+        <div style="display:flex; gap: 10px; align-items:center;">
+            <a href="{% url 'dashboard' %}" class="logout-btn" style="text-decoration:none; display:inline-block;">Home</a>
+            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Dashboard sections">
+        <button id="tab-timetable" class="tab active" type="button" role="tab" aria-controls="timetable" aria-selected="true" tabindex="0" data-tab="timetable">Timetable</button>
+        <button id="tab-diary" class="tab" type="button" role="tab" aria-controls="diary" aria-selected="false" tabindex="-1" data-tab="diary">Diary</button>
+        <button id="tab-records" class="tab" type="button" role="tab" aria-controls="records" aria-selected="false" tabindex="-1" data-tab="records">Records</button>
+        <button id="tab-settings" class="tab" type="button" role="tab" aria-controls="settings" aria-selected="false" tabindex="-1" data-tab="settings">Settings</button>
+    </div>
+
+    <div id="timetable" class="tab-content active" role="tabpanel" aria-labelledby="tab-timetable">
+        <div class="content-section">
+            <h2>Timetable Management</h2>
+            <div class="welcome">
+                <p>Welcome, {{ user.get_full_name|default:user.username }}!</p>
+            </div>
+
+            {% if False %}
+            <div style="background: rgba(26,115,232,0.08); border: 1px solid rgba(26,115,232,0.18); border-radius: 14px; padding: 14px 16px; margin-bottom: 18px;">
+                <div style="font-weight:700; color:#1a73e8; margin-bottom: 6px;">Today's teaching note</div>
+                <div style="color: inherit;">"{{ daily_quote }}"</div>
+            </div>
+            {% endif %}
+            {% include "accounts/subject_selection.html" %}
+            <h4 style="margin-top: 24px;">Your Timetable</h4>
+
+            <!-- View Toggle Buttons -->
+            <div style="margin-bottom: 20px;">
+                <button id="view-toggle-list" type="button" class="btn btn-primary" aria-pressed="true">List View</button>
+                <button id="view-toggle-grid" type="button" class="btn btn-secondary" aria-pressed="false">Grid View</button>
+            </div>
+
+            <!-- List View -->
+            <div id="timetable-list-view">
+                {% if timetable_slots %}
+                <table style="width:100%; border-collapse: collapse; margin-top: 12px;">
+                    <thead>
+                        <tr style="background: #eee;">
+                            <th style="padding: 8px; text-align: left;">Time</th>
+                            <th style="padding: 8px; text-align: left;">Subject</th>
+                            <th style="padding: 8px; text-align: left;">Class</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slot in timetable_slots %}
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 8px;">{{ slot.time_slot|default:slot.day }} {{ slot.hour }}</td>
+                            <td style="padding: 8px;">{{ slot.subject.code }} - {{ slot.subject.name }}</td>
+                            <td style="padding: 8px;">{{ slot.class_assigned.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No timetable slots yet. Select subjects above and ask admin to generate the timetable.</p>
+                {% endif %}
+            </div>
+
+            <!-- Grid View -->
+            <div id="timetable-grid-view" hidden>
+                <div id="lecturer-timetable-grid">
+                    <!-- Grid will be rendered here by JavaScript -->
+                </div>
+                {{ timetable_data|json_script:"timetable-data" }}
+            </div>
+        </div>
+    </div>
+
+    <div id="diary" class="tab-content" role="tabpanel" aria-labelledby="tab-diary" hidden>
+        <div class="content-section">
+            <h2>Diary</h2>
+            <p style="margin-top: 0; color: #555;">
+                This is a read-only diary of system updates and admin announcements, plus a one-time request form to contact the admin.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 18px;">
+                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                    <h3 style="margin: 0 0 10px 0; color: #1a73e8;">Calendar & checklist</h3>
+                    <div style="display:flex; gap: 10px; flex-wrap: wrap; align-items:center; margin-bottom: 10px;">
+                        <button type="button" class="btn btn-secondary" id="cal-prev">Prev</button>
+                        <div style="font-weight:700;" id="cal-title">—</div>
+                        <button type="button" class="btn btn-secondary" id="cal-next">Next</button>
+                        <button type="button" class="btn btn-secondary" id="cal-toggle-view" data-view="month">Monthly</button>
+                    </div>
+                    <div id="cal-grid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 8px;"></div>
+                    <div id="cal-panel" style="margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; display:none; background: var(--panel-bg);">
+                        <div style="font-weight:700; margin-bottom: 8px;" id="cal-panel-date">—</div>
+                        <label style="display:flex; align-items:center; gap: 8px;">
+                            <input type="checkbox" id="cal-done"> Teaching done
+                        </label>
+                        <div style="margin-top: 8px;">
+                            <label style="font-weight:600;">Note (optional)</label>
+                            <input type="text" id="cal-note" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px;" placeholder="e.g. Unit 3 revision done">
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button type="button" class="btn btn-primary" id="cal-save">Save</button>
+                        </div>
+                        <div id="cal-events" style="margin-top: 10px; color:#555;"></div>
+                    </div>
+                </div>
+
+                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                    <h3 style="margin: 0 0 10px 0; color: #1a73e8;">Estimated progress</h3>
+                    {% if progress.percent is not None %}
+                        <div style="display:flex; align-items:center; gap: 12px; flex-wrap:wrap;">
+                            <div style="font-weight:800; font-size: 18px;">{{ progress.percent }}%</div>
+                            <div style="flex:1; min-width: 240px; background: var(--progress-bg); border-radius: 999px; height: 10px; overflow:hidden;">
+                                <div style="height: 100%; width: {{ progress.percent }}%; background: linear-gradient(90deg, #1a73e8, #1557b0);"></div>
+                            </div>
+                        </div>
+                        <p style="margin: 10px 0 0 0; color:#555;">
+                            You should be around {{ progress.percent }}% completion by now ({{ progress.counts.elapsed_working_days }}/{{ progress.counts.total_working_days }} working days elapsed).
+                        </p>
+                    {% else %}
+                        <p style="margin:0; color:#666;">Admin has not configured semester start/end dates yet.</p>
+                    {% endif %}
+                </div>
+                <div style="background: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                    <h3 style="margin: 0 0 10px 0; color: #1a73e8;">Raise a request</h3>
+                    <form id="diary-request-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="request_type">Type</label>
+                            <select id="request_type" name="request_type" required>
+                                <option value="">Select type</option>
+                                <option value="timetable_clash">Timetable clash</option>
+                                <option value="subject_change">Subject change</option>
+                                <option value="leave_unavailability">Leave / unavailability</option>
+                                <option value="other_academic_issue">Other academic issue</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Short description</label>
+                            <textarea id="description" name="description" rows="3" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit request</button>
+                    </form>
+                    {% if not system_settings.allow_lecturer_requests %}
+                        <p style="color:#c5221f; margin: 10px 0 0 0;">Requests are currently disabled by admin.</p>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var f = document.getElementById('diary-request-form');
+                                if (!f) return;
+                                f.querySelectorAll('input, select, textarea, button').forEach(function(el) { el.disabled = true; });
+                            });
+                        </script>
+                    {% endif %}
+                </div>
+
+                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                    <h3 style="margin: 0 0 10px 0; color: #1a73e8;">Your requests</h3>
+                    {% if diary.requests %}
+                        <table style="width:100%; border-collapse: collapse; margin-top: 8px;">
+                            <thead>
+                                <tr style="background: #eee;">
+                                    <th style="padding: 8px; text-align: left;">When</th>
+                                    <th style="padding: 8px; text-align: left;">Type</th>
+                                    <th style="padding: 8px; text-align: left;">Description</th>
+                                    <th style="padding: 8px; text-align: left;">Status</th>
+                                    <th style="padding: 8px; text-align: left;">Admin reply</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in diary.requests %}
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <td style="padding: 8px;">{{ r.created_at }}</td>
+                                        <td style="padding: 8px;">{{ r.get_request_type_display }}</td>
+                                        <td style="padding: 8px;">{{ r.description }}</td>
+                                        <td style="padding: 8px;">{{ r.get_status_display }}</td>
+                                        <td style="padding: 8px;">{{ r.admin_reply|default:"—" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p style="color: #666; margin: 0;">No requests raised yet.</p>
+                    {% endif %}
+                </div>
+
+                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                    <h3 style="margin: 0 0 10px 0; color: #1a73e8;">Diary entries</h3>
+                    {% if diary.entries %}
+                        <table style="width:100%; border-collapse: collapse; margin-top: 8px;">
+                            <thead>
+                                <tr style="background: #eee;">
+                                    <th style="padding: 8px; text-align: left;">When</th>
+                                    <th style="padding: 8px; text-align: left;">Title</th>
+                                    <th style="padding: 8px; text-align: left;">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in diary.entries %}
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <td style="padding: 8px;">{{ e.created_at }}</td>
+                                        <td style="padding: 8px;">{{ e.title|default:e.entry_type }}</td>
+                                        <td style="padding: 8px;">{{ e.message }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p style="color: #666; margin: 0;">No diary entries yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings" class="tab-content" role="tabpanel" aria-labelledby="tab-settings" hidden>
+        <div class="content-section">
+            <h2>Settings</h2>
+            <div id="settings-msg" style="margin-bottom: 12px;"></div>
+
+            <div class="content-section" style="box-shadow:none; padding: 0; background: transparent;">
+                <div style="background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 18px;">
+                    <h3 style="margin-top:0; color:#1a73e8;">Profile settings</h3>
+                    <table style="width:100%; border-collapse: collapse;">
+                        <tbody>
+                            <tr><td style="padding: 6px 0; width: 180px; font-weight:600;">Full name</td><td style="padding: 6px 0;">{{ user.get_full_name|default:user.username }}</td></tr>
+                            <tr><td style="padding: 6px 0; width: 180px; font-weight:600;">Employee ID</td><td style="padding: 6px 0;">{{ user.employee_id|default:"—" }}</td></tr>
+                            <tr><td style="padding: 6px 0; width: 180px; font-weight:600;">Department</td><td style="padding: 6px 0;">{{ user.department|default:"—" }}</td></tr>
+                        </tbody>
+                    </table>
+                    <div style="display:flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;">
+                        <div style="flex:1; min-width: 220px;">
+                            <label style="font-weight:600;">Email (editable)</label>
+                            <input type="email" id="prof-email" value="{{ user.email|default:'' }}" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+                        <div style="flex:1; min-width: 220px;">
+                            <label style="font-weight:600;">Phone number (editable)</label>
+                            <input type="text" id="prof-phone" value="{{ user.phone_number|default:'' }}" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+                        <div style="align-self:flex-end;">
+                            <button type="button" class="btn btn-primary" id="save-profile-btn">Save profile</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 18px;">
+                    <h3 style="margin-top:0; color:#1a73e8;">UI preferences</h3>
+                    <div style="display:flex; gap: 12px; flex-wrap: wrap;">
+                        <div style="min-width: 220px;">
+                            <label style="font-weight:600;">Theme</label>
+                            <select id="pref-theme" style="width: 220px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                                <option value="light" {% if prefs.theme == 'light' %}selected{% endif %}>Light</option>
+                                <option value="dark" {% if prefs.theme == 'dark' %}selected{% endif %}>Dark</option>
+                            </select>
+                        </div>
+                        <div style="min-width: 220px;">
+                            <label style="font-weight:600;">Timetable view</label>
+                            <select id="pref-timetable-view" style="width: 220px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                                <option value="grid" {% if prefs.timetable_view == 'grid' %}selected{% endif %}>Grid</option>
+                                <option value="list" {% if prefs.timetable_view == 'list' %}selected{% endif %}>List</option>
+                            </select>
+                        </div>
+                        <div style="min-width: 220px;">
+                            <label style="font-weight:600;">Time format</label>
+                            <select id="pref-time-format" style="width: 220px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                                <option value="12h" {% if prefs.time_format == '12h' %}selected{% endif %}>12-hour</option>
+                                <option value="24h" {% if prefs.time_format != '12h' %}selected{% endif %}>24-hour</option>
+                            </select>
+                        </div>
+                        <div style="align-self:flex-end;">
+                            <button type="button" class="btn btn-primary" id="save-ui-btn">Save UI preferences</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 18px;">
+                    <h3 style="margin-top:0; color:#1a73e8;">Diary preferences</h3>
+                    <div style="display:flex; gap: 18px; flex-wrap: wrap;">
+                        <label style="display:flex; align-items:center; gap: 8px;">
+                            <input type="checkbox" id="pref-diary-email" {% if prefs.diary_email_alerts %}checked{% endif %}>
+                            Email alerts for new diary entries
+                        </label>
+                        <label style="display:flex; align-items:center; gap: 8px;">
+                            <input type="checkbox" id="pref-diary-important" {% if prefs.diary_only_important %}checked{% endif %}>
+                            Show only important diary entries
+                        </label>
+                        <div style="align-self:flex-end;">
+                            <button type="button" class="btn btn-primary" id="save-diary-btn">Save diary preferences</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <h3 style="margin-top:0; color:#1a73e8;">Security</h3>
+                    <div style="display:flex; gap: 12px; flex-wrap: wrap;">
+                        <div style="min-width: 220px;">
+                            <label style="font-weight:600;">Old password</label>
+                            <input type="password" id="lec-old-password" style="width: 220px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+                        <div style="min-width: 220px;">
+                            <label style="font-weight:600;">New password</label>
+                            <input type="password" id="lec-new-password1" style="width: 220px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+                        <div style="min-width: 220px;">
+                            <label style="font-weight:600;">Confirm new password</label>
+                            <input type="password" id="lec-new-password2" style="width: 220px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+                        <div style="align-self:flex-end;">
+                            <button type="button" class="btn btn-secondary" id="lec-change-password-btn">Change password</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="records" class="tab-content" role="tabpanel" aria-labelledby="tab-records" hidden>
+        <div class="content-section">
+            <h2>Records</h2>
+            <p style="margin-top:0; color:#555;">Read-only historical data from archived semesters.</p>
+
+            <div style="background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 18px;">
+                <h3 style="margin-top:0; color:#1a73e8;">Archived timetables</h3>
+                {% if records.archives %}
+                    <table style="width:100%; border-collapse: collapse; margin-top: 8px;">
+                        <thead>
+                            <tr>
+                                <th style="padding:8px; text-align:left;">When</th>
+                                <th style="padding:8px; text-align:left;">Academic year</th>
+                                <th style="padding:8px; text-align:left;">Semester</th>
+                                <th style="padding:8px; text-align:left;">Note</th>
+                                <th style="padding:8px; text-align:left;">Download</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in records.archives %}
+                                <tr style="border-bottom:1px solid #ddd;">
+                                    <td style="padding:8px;">{{ a.created_at }}</td>
+                                    <td style="padding:8px;">{{ a.academic_year }}</td>
+                                    <td style="padding:8px;">{{ a.semester }}</td>
+                                    <td style="padding:8px;">{{ a.note|default:"—" }}</td>
+                                    <td style="padding:8px;">
+                                        <a class="btn btn-primary" href="{% url 'records_timetable_pdfs' a.id %}" download>PDFs (ZIP)</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p style="color:#666; margin:0;">No archives available yet.</p>
+                {% endif %}
+            </div>
+
+            <div style="background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 18px;">
+                <h3 style="margin-top:0; color:#1a73e8;">Previously assigned subjects</h3>
+                {% if records.past_subjects %}
+                    <ul style="margin:0; padding-left: 18px;">
+                        {% for s in records.past_subjects %}
+                            <li>{{ s.subject_code }} - {{ s.subject_name }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color:#666; margin:0;">No subject history yet.</p>
+                {% endif %}
+            </div>
+
+            <div style="background: var(--card-bg); border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <h3 style="margin-top:0; color:#1a73e8;">Closed diary requests</h3>
+                {% if records.closed_requests %}
+                    <table style="width:100%; border-collapse: collapse; margin-top: 8px;">
+                        <thead>
+                            <tr>
+                                <th style="padding:8px; text-align:left;">When</th>
+                                <th style="padding:8px; text-align:left;">Type</th>
+                                <th style="padding:8px; text-align:left;">Description</th>
+                                <th style="padding:8px; text-align:left;">Admin reply</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records.closed_requests %}
+                                <tr style="border-bottom:1px solid #ddd;">
+                                    <td style="padding:8px;">{{ r.created_at }}</td>
+                                    <td style="padding:8px;">{{ r.get_request_type_display }}</td>
+                                    <td style="padding:8px;">{{ r.description }}</td>
+                                    <td style="padding:8px;">{{ r.admin_reply|default:"—" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p style="color:#666; margin:0;">No closed requests yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initTabs() {
+            var tablist = document.querySelector('.tabs[role="tablist"]');
+            if (!tablist) return;
+
+            var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"][data-tab]'));
+            var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-content[role="tabpanel"]'));
+            if (!tabs.length || !panels.length) return;
+
+            function activate(tabId, focus) {
+                var nextTab = null;
+                for (var i = 0; i < tabs.length; i++) {
+                    if (tabs[i].dataset && tabs[i].dataset.tab === tabId) {
+                        nextTab = tabs[i];
+                        break;
+                    }
+                }
+                if (!nextTab) nextTab = tabs[0];
+                if (!nextTab) return;
+
+                tabs.forEach(function(t) {
+                    var isActive = t === nextTab;
+                    t.classList.toggle('active', isActive);
+                    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    t.tabIndex = isActive ? 0 : -1;
+                });
+
+                panels.forEach(function(p) {
+                    var isActive = p.id === nextTab.dataset.tab;
+                    p.classList.toggle('active', isActive);
+                    p.hidden = !isActive;
+                });
+
+                if (focus) nextTab.focus();
+                if (history && history.replaceState) history.replaceState(null, '', '#' + nextTab.dataset.tab);
+            }
+
+            tabs.forEach(function(tab) {
+                tab.addEventListener('click', function() { activate(tab.dataset.tab, false); });
+                tab.addEventListener('keydown', function(e) {
+                    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return;
+                    e.preventDefault();
+                    var idx = tabs.indexOf(tab);
+                    var nextIdx = idx;
+                    if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabs.length) % tabs.length;
+                    if (e.key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
+                    if (e.key === 'Home') nextIdx = 0;
+                    if (e.key === 'End') nextIdx = tabs.length - 1;
+                    activate(tabs[nextIdx].dataset.tab, true);
+                });
+            });
+
+            var fromHash = (location.hash || '').replace('#', '');
+            if (fromHash === 'timetableview' || fromHash === 'timetable-grid' || fromHash === 'timetablegrid') {
+                window.__timetablePreferredView = 'grid';
+                fromHash = 'timetable';
+            }
+            if (fromHash === 'timetablelistview' || fromHash === 'timetable-list' || fromHash === 'timetablelist') {
+                window.__timetablePreferredView = 'list';
+                fromHash = 'timetable';
+            }
+
+            var hashMatchesPanel = false;
+            for (var j = 0; j < panels.length; j++) {
+                if (panels[j].id === fromHash) {
+                    hashMatchesPanel = true;
+                    break;
+                }
+            }
+
+            var defaultTabId = tabs[0].dataset.tab;
+            for (var k = 0; k < tabs.length; k++) {
+                if (tabs[k].classList && tabs[k].classList.contains('active')) {
+                    defaultTabId = tabs[k].dataset.tab;
+                    break;
+                }
+            }
+
+            activate(hashMatchesPanel ? fromHash : defaultTabId, false);
+        }
+
+        // Tabs + timetable view toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            initTabs();
+
+            var listBtn = document.getElementById('view-toggle-list');
+            var gridBtn = document.getElementById('view-toggle-grid');
+            var listView = document.getElementById('timetable-list-view');
+            var gridView = document.getElementById('timetable-grid-view');
+            if (!listBtn || !gridBtn || !listView || !gridView) return;
+
+            function setBtnActive(btn, active) {
+                btn.classList.toggle('btn-primary', active);
+                btn.classList.toggle('btn-secondary', !active);
+                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+            }
+
+            function setView(view) {
+                var isList = view === 'list';
+                listView.hidden = !isList;
+                gridView.hidden = isList;
+                setBtnActive(listBtn, isList);
+                setBtnActive(gridBtn, !isList);
+                if (!isList) renderLecturerTimetableGrid();
+            }
+
+            listBtn.addEventListener('click', function() { setView('list'); });
+            gridBtn.addEventListener('click', function() { setView('grid'); });
+
+            var preferredView = window.__timetablePreferredView || '{{ prefs.timetable_view|default:"grid" }}';
+            setView(preferredView === 'list' ? 'list' : 'grid');
+        });
+
+        // Lecturer request form (Diary)
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('diary-request-form');
+            if (!form) return;
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var fd = new FormData(form);
+                fetch('{% url "diary_request" %}', {
+                    method: 'POST',
+                    body: fd,
+                    headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                }).then(function(r) {
+                    return r.json().then(function(d) {
+                        if (r.ok && d.success) {
+                            location.reload();
+                        } else {
+                            alert(d.error || 'Failed to submit request.');
+                        }
+                    });
+                }).catch(function() {
+                    alert('Connection error.');
+                });
+            });
+        });
+
+        // Diary calendar (Lecturer)
+        document.addEventListener('DOMContentLoaded', function() {
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = now.getMonth() + 1;
+            var view = 'month';
+            var selected = null;
+
+            var title = document.getElementById('cal-title');
+            var grid = document.getElementById('cal-grid');
+            var panel = document.getElementById('cal-panel');
+            var panelDate = document.getElementById('cal-panel-date');
+            var done = document.getElementById('cal-done');
+            var note = document.getElementById('cal-note');
+            var eventsEl = document.getElementById('cal-events');
+
+            if (!grid || !title) return;
+
+            function csrf() { return document.querySelector('[name=csrfmiddlewaretoken]').value; }
+            function ymLabel(y, m) {
+                var d = new Date(y, m - 1, 1);
+                return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+            }
+
+            function render(days) {
+                title.textContent = ymLabel(year, month) + (view === 'week' ? ' (Weekly)' : '');
+                grid.innerHTML = '';
+
+                var weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                weekdays.forEach(function(w) {
+                    var h = document.createElement('div');
+                    h.textContent = w;
+                    h.style.fontWeight = '800';
+                    h.style.color = '#5f6368';
+                    grid.appendChild(h);
+                });
+
+                function pad2(n) { return String(n).padStart(2, '0'); }
+                function isoLocal(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+
+                var byDate = new Map((days || []).filter(Boolean).map(function(d) { return [d.date, d]; }));
+
+                function buildDayButton(d) {
+                    var cell = document.createElement('button');
+                    cell.type = 'button';
+                    cell.style.border = '1px solid #eee';
+                    cell.style.borderRadius = '10px';
+                    cell.style.padding = '10px';
+                    cell.style.background = d.is_holiday ? '#fff3cd' : (d.is_working_day ? '#f8f9fa' : '#f0f2f5');
+                    cell.style.cursor = 'pointer';
+                    cell.style.textAlign = 'left';
+
+                    var dayNum = document.createElement('div');
+                    dayNum.style.fontWeight = '800';
+                    dayNum.textContent = String(d.date || '').slice(-2);
+                    cell.appendChild(dayNum);
+
+                    var status = document.createElement('div');
+                    status.style.fontSize = '12px';
+                    status.style.color = '#5f6368';
+                    status.textContent = d.is_holiday ? 'Holiday' : (d.is_working_day ? 'Working' : 'Off');
+                    cell.appendChild(status);
+
+                    if (d.is_working_day) {
+                        var teach = document.createElement('div');
+                        teach.style.marginTop = '6px';
+                        teach.style.fontSize = '12px';
+                        teach.style.color = d.teaching_done ? '#1e8e3e' : '#c5221f';
+                        teach.textContent = d.teaching_done ? 'Teaching done' : 'Pending';
+                        cell.appendChild(teach);
+                    }
+
+                    cell.addEventListener('click', function() {
+                        selected = d;
+                        if (panel) panel.style.display = 'block';
+                        if (panelDate) panelDate.textContent = d.date;
+                        if (done) done.checked = !!d.teaching_done;
+                        if (note) note.value = d.note || '';
+                        if (eventsEl) {
+                            eventsEl.textContent = '';
+                            if (d.events && d.events.length) {
+                                var header = document.createElement('div');
+                                header.style.fontWeight = '700';
+                                header.style.marginBottom = '6px';
+                                header.textContent = 'Academic events';
+                                eventsEl.appendChild(header);
+
+                                d.events.forEach(function(e) {
+                                    var row = document.createElement('div');
+                                    row.style.marginBottom = '6px';
+                                    var titleEl = document.createElement('b');
+                                    titleEl.textContent = e && e.title ? String(e.title) : 'Event';
+                                    row.appendChild(titleEl);
+                                    if (e && e.message) {
+                                        var msg = document.createElement('span');
+                                        msg.textContent = ': ' + String(e.message);
+                                        row.appendChild(msg);
+                                    }
+                                    eventsEl.appendChild(row);
+                                });
+                            }
+                        }
+                    });
+
+                    return cell;
+                }
+
+                if (view === 'month') {
+                    // Padding so month starts correct in Mon-based grid.
+                    var first = new Date(year, month - 1, 1);
+                    var pad = (first.getDay() + 6) % 7; // Sun=0 => Mon=0
+                    for (var i = 0; i < pad; i++) {
+                        grid.appendChild(document.createElement('div'));
+                    }
+
+                    (days || []).forEach(function(d) {
+                        grid.appendChild(buildDayButton(d));
+                    });
+                    return;
+                }
+
+                var base = selected && selected.date
+                    ? new Date(selected.date + 'T00:00:00')
+                    : ((year === now.getFullYear() && month === (now.getMonth() + 1)) ? new Date(now.getFullYear(), now.getMonth(), now.getDate()) : new Date(year, month - 1, 1));
+                var start = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+                start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+
+                for (var j = 0; j < 7; j++) {
+                    var dt = new Date(start.getFullYear(), start.getMonth(), start.getDate() + j);
+                    var iso = isoLocal(dt);
+                    var d = byDate.get(iso);
+                    if (d) {
+                        grid.appendChild(buildDayButton(d));
+                    } else {
+                        var empty = document.createElement('button');
+                        empty.type = 'button';
+                        empty.disabled = true;
+                        empty.style.border = '1px solid #eee';
+                        empty.style.borderRadius = '10px';
+                        empty.style.padding = '10px';
+                        empty.style.background = '#fafafa';
+                        empty.style.color = '#999';
+                        empty.style.textAlign = 'left';
+                        empty.textContent = iso.slice(-2);
+                        grid.appendChild(empty);
+                    }
+                }
+            }
+
+            function load() {
+                fetch('{% url "diary_calendar" %}?year=' + year + '&month=' + month)
+                    .then(r => r.json())
+                    .then(function(data) { render(data.days || []); })
+                    .catch(function() { title.textContent = 'Could not load calendar.'; });
+            }
+
+            var prev = document.getElementById('cal-prev');
+            var next = document.getElementById('cal-next');
+            var toggle = document.getElementById('cal-toggle-view');
+            var save = document.getElementById('cal-save');
+            if (prev) prev.addEventListener('click', function() { month--; if (month < 1) { month = 12; year--; } load(); });
+            if (next) next.addEventListener('click', function() { month++; if (month > 12) { month = 1; year++; } load(); });
+            if (toggle) toggle.addEventListener('click', function() {
+                view = (view === 'month') ? 'week' : 'month';
+                toggle.textContent = (view === 'month') ? 'Monthly' : 'Weekly';
+                load();
+            });
+            if (save) save.addEventListener('click', function() {
+                if (!selected) return;
+                var body = new URLSearchParams({
+                    date: selected.date,
+                    teaching_done: (done && done.checked) ? 'true' : 'false',
+                    note: note ? (note.value || '') : ''
+                });
+                fetch('{% url "diary_teaching_update" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf() },
+                    body: body
+                }).then(function() { load(); });
+            });
+
+            load();
+        });
+
+        function showSettingsMsg(text, isError) {
+            var el = document.getElementById('settings-msg');
+            if (!el) return;
+            el.textContent = '';
+            var box = document.createElement('div');
+            box.style.padding = '10px 12px';
+            box.style.borderRadius = '10px';
+            box.style.background = isError ? '#fce8e6' : '#e6f4ea';
+            box.style.color = isError ? '#c5221f' : '#1e8e3e';
+            box.textContent = String(text || '');
+            el.appendChild(box);
+            setTimeout(function() { el.textContent = ''; }, 4000);
+        }
+
+        // Settings actions
+        document.addEventListener('DOMContentLoaded', function() {
+            var csrf = function() { return document.querySelector('[name=csrfmiddlewaretoken]').value; };
+
+            var saveProfileBtn = document.getElementById('save-profile-btn');
+            if (saveProfileBtn) {
+                saveProfileBtn.addEventListener('click', function() {
+                    var body = new URLSearchParams({
+                        email: (document.getElementById('prof-email').value || '').trim(),
+                        phone_number: (document.getElementById('prof-phone').value || '').trim()
+                    });
+                    fetch('{% url "settings_profile" %}', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrf() },
+                        body: body
+                    }).then(r => r.json().then(d => ({ r, d }))).then(({ r, d }) => {
+                        if (r.ok && d.success) showSettingsMsg(d.message || 'Profile updated.');
+                        else showSettingsMsg(d.error || 'Failed.', true);
+                    }).catch(() => showSettingsMsg('Connection error.', true));
+                });
+            }
+
+            var saveUiBtn = document.getElementById('save-ui-btn');
+            if (saveUiBtn) {
+                saveUiBtn.addEventListener('click', function() {
+                    var body = new URLSearchParams({
+                        theme: document.getElementById('pref-theme').value,
+                        timetable_view: document.getElementById('pref-timetable-view').value,
+                        time_format: document.getElementById('pref-time-format').value
+                    });
+                    fetch('{% url "settings_preferences" %}', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrf() },
+                        body: body
+                    }).then(r => r.json().then(d => ({ r, d }))).then(({ r, d }) => {
+                        if (r.ok && d.success) { showSettingsMsg(d.message || 'Preferences saved.'); setTimeout(function(){ location.reload(); }, 400); }
+                        else showSettingsMsg(d.error || 'Failed.', true);
+                    }).catch(() => showSettingsMsg('Connection error.', true));
+                });
+            }
+
+            var saveDiaryBtn = document.getElementById('save-diary-btn');
+            if (saveDiaryBtn) {
+                saveDiaryBtn.addEventListener('click', function() {
+                    var body = new URLSearchParams({
+                        diary_email_alerts: document.getElementById('pref-diary-email').checked ? 'true' : 'false',
+                        diary_only_important: document.getElementById('pref-diary-important').checked ? 'true' : 'false'
+                    });
+                    fetch('{% url "settings_diary" %}', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrf() },
+                        body: body
+                    }).then(r => r.json().then(d => ({ r, d }))).then(({ r, d }) => {
+                        if (r.ok && d.success) { showSettingsMsg(d.message || 'Diary preferences saved.'); setTimeout(function(){ location.reload(); }, 400); }
+                        else showSettingsMsg(d.error || 'Failed.', true);
+                    }).catch(() => showSettingsMsg('Connection error.', true));
+                });
+            }
+
+            var chPwdBtn = document.getElementById('lec-change-password-btn');
+            if (chPwdBtn) {
+                chPwdBtn.addEventListener('click', function() {
+                    var body = new URLSearchParams({
+                        old_password: document.getElementById('lec-old-password').value || '',
+                        new_password1: document.getElementById('lec-new-password1').value || '',
+                        new_password2: document.getElementById('lec-new-password2').value || ''
+                    });
+                    fetch('{% url "settings_change_password" %}', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrf() },
+                        body: body
+                    }).then(r => r.json().then(d => ({ r, d }))).then(({ r, d }) => {
+                        if (r.ok && d.success) {
+                            showSettingsMsg(d.message || 'Password changed.');
+                            document.getElementById('lec-old-password').value = '';
+                            document.getElementById('lec-new-password1').value = '';
+                            document.getElementById('lec-new-password2').value = '';
+                        } else {
+                            showSettingsMsg(d.error || 'Failed to change password.', true);
+                        }
+                    }).catch(() => showSettingsMsg('Connection error.', true));
+                });
+            }
+        });
+
+        function renderLecturerTimetableGrid() {
+            var container = document.getElementById('lecturer-timetable-grid');
+            if (!container) return;
+
+            var timetableData = [];
+            var dataEl = document.getElementById('timetable-data');
+            if (dataEl) {
+                try {
+                    timetableData = JSON.parse(dataEl.textContent || '[]');
+                    if (typeof timetableData === 'string') {
+                        timetableData = JSON.parse(timetableData);
+                    }
+                    if (!timetableData) timetableData = [];
+                } catch (e) {
+                    timetableData = [];
+                }
+            }
+
+            if (!Array.isArray(timetableData) || timetableData.length === 0) {
+                container.textContent = '';
+                var p = document.createElement('p');
+                p.style.color = '#666';
+                p.textContent = 'No timetable data available. Select subjects and ask admin to generate the timetable.';
+                container.appendChild(p);
+                return;
+            }
+
+            var DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            var PERIOD_LABELS = [
+                { period: 1, label: '1st (9:50–10:50)' },
+                { period: 2, label: '2nd (10:50–11:50)' },
+                { period: 3, label: '3rd (12:00–1:00)' },
+                { period: 4, label: '4th (1:00–2:00)' },
+                { period: 5, label: '5th (2:30–3:30)' },
+                { period: 6, label: '6th (3:30–4:30)' }
+            ];
+
+            var grid = new Map();
+            timetableData.forEach(function(slot) {
+                if (!slot || !slot.day || !slot.period) return;
+                var key = String(slot.day) + '_' + String(slot.period);
+                grid.set(key, {
+                    subject: String(slot.subject || ''),
+                    subjectCode: String(slot.subject_code || ''),
+                    className: String(slot.class || '')
+                });
+            });
+
+            var table = document.createElement('table');
+            table.className = 'grid-table';
+
+            var thead = document.createElement('thead');
+            var headRow = document.createElement('tr');
+
+            var thPeriod = document.createElement('th');
+            thPeriod.className = 'time-col';
+            thPeriod.textContent = 'Period';
+            headRow.appendChild(thPeriod);
+
+            DAYS.forEach(function(day) {
+                var th = document.createElement('th');
+                th.textContent = day.slice(0, 3);
+                headRow.appendChild(th);
+            });
+
+            thead.appendChild(headRow);
+            table.appendChild(thead);
+
+            var tbody = document.createElement('tbody');
+            PERIOD_LABELS.forEach(function(p) {
+                var row = document.createElement('tr');
+
+                var timeCell = document.createElement('td');
+                timeCell.className = 'time-col';
+                timeCell.textContent = p.label;
+                row.appendChild(timeCell);
+
+                DAYS.forEach(function(day) {
+                    var td = document.createElement('td');
+                    var key = day + '_' + String(p.period);
+                    var cell = grid.get(key);
+                    if (cell && cell.subject) {
+                        td.className = 'cell-filled';
+                        var line1 = document.createElement('div');
+                        line1.textContent = (cell.subjectCode ? (cell.subjectCode + ' ') : '') + cell.subject;
+                        td.appendChild(line1);
+                        td.appendChild(document.createElement('br'));
+                        var small = document.createElement('small');
+                        small.textContent = cell.className;
+                        td.appendChild(small);
+                    } else {
+                        td.className = 'cell-free';
+                        td.textContent = '—';
+                    }
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            container.textContent = '';
+            container.appendChild(table);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Guru Diary</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/guru.css' %}">
+    <style>
+        @media (prefers-color-scheme: dark) { body { color-scheme: dark; } }
+        /* Give admin auth pages a slightly different tint, but same components. */
+        body {
+            background:
+                radial-gradient(1000px 600px at 20% 10%, rgba(13, 71, 161, 0.22), transparent 60%),
+                radial-gradient(900px 520px at 80% 20%, rgba(26, 115, 232, 0.18), transparent 55%),
+                linear-gradient(180deg, var(--bg0), var(--bg1));
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-shell">
+        <div class="card auth-card">
+            <div class="head">
+                <div class="kicker">Admin Portal</div>
+                <div class="appname">Guru Diary</div>
+                <p class="sub">Sign in to the admin workspace</p>
+            </div>
+
+            {% if error %}
+                <div class="alert">{{ error }}</div>
+                <div style="height: 10px;"></div>
+            {% endif %}
+
+            <form method="post" action="{% url 'admin_portal:login' %}" class="stack">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                <div class="field">
+                    <label for="id_username">Username</label>
+                    <input class="input" type="text" name="username" id="id_username" placeholder="Enter your username" required autofocus>
+                </div>
+                <div class="field">
+                    <label for="id_password">Password</label>
+                    <input class="input" type="password" name="password" id="id_password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign in</button>
+            </form>
+
+            <div style="height: 14px;"></div>
+            <div class="muted">
+                {% if signup_available %}
+                    First time? <a href="{% url 'admin_portal:signup' %}">Create admin account</a><br>
+                {% endif %}
+                Lecturer? <a href="{% url 'login' %}">&lt;- Lecturer login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

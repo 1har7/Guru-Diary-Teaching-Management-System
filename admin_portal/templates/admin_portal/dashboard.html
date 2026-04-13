@@ -1,0 +1,1532 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Admin Portal - Guru Diary</title>
+    <link rel="stylesheet" href="{% static 'core/guru.css' %}">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #3c4043; }
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+            color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .header h1 { margin: 0; font-size: 1.35rem; font-weight: 700; }
+        .logout-btn {
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; position: relative; z-index: 10;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .tabs { display: flex; background: #e8eaed; padding: 0 24px; gap: 4px; border-bottom: 1px solid #dadce0; }
+        .tab {
+            padding: 14px 20px; cursor: pointer; border: none; background: transparent; color: #5f6368;
+            font-weight: 600; font-size: 14px; border-radius: 8px 8px 0 0; margin-bottom: -1px;
+        }
+        .tab:hover { background: #dadce0; color: #3c4043; }
+        .tab.active { background: white; color: #1a73e8; border: 1px solid #dadce0; border-bottom-color: white; }
+        .tab-content { display: none; padding: 24px; max-width: 1000px; margin: 0 auto; }
+        .tab-content.active { display: block; }
+        .card {
+            background: white; border-radius: 12px; border: 1px solid #e0e0e0; padding: 20px; margin-bottom: 20px;
+        }
+        .card h2 { margin: 0 0 16px; font-size: 1rem; color: #1a73e8; font-weight: 600; }
+        .form-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 13px; font-weight: 500; color: #5f6368; }
+        .form-group input, .form-group select {
+            padding: 10px 12px; border: 1px solid #dadce0; border-radius: 8px; font-size: 14px; min-width: 160px;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #1a73e8; }
+        .btn {
+            padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none;
+        }
+        .btn-primary { background: #1a73e8; color: white; }
+        .btn-primary:hover { background: #1765cc; }
+        .btn-secondary { background: #e8eaed; color: #3c4043; }
+        .btn-secondary:hover { background: #dadce0; }
+        .timetable-table {
+            width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden;
+            border: 1px solid #dadce0;
+        }
+        .timetable-table th, .timetable-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+        .timetable-table th { background: #f8f9fa; color: #5f6368; font-weight: 600; font-size: 12px; }
+        .timetable-table tbody tr:nth-child(even) { background: #f8f9fa; }
+        .timetable-table tbody tr:hover { background: #f0f2f5; }
+        .empty-msg { color: #5f6368; font-size: 14px; padding: 24px; }
+        .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .message.success { background: #e6f4ea; color: #1e8e3e; }
+        .message.error { background: #fce8e6; color: #c5221f; }
+        .lecturer-link { color: #1a73e8; font-size: 13px; margin-top: 16px; }
+        .lecturer-link a { color: #1a73e8; }
+        .timetable-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+        .timetable-controls label { font-size: 13px; font-weight: 600; color: #5f6368; }
+        .timetable-controls select { padding: 8px 12px; border-radius: 8px; border: 1px solid #dadce0; font-size: 14px; min-width: 180px; }
+        .perspective-label { font-size: 13px; font-weight: 600; color: #5f6368; }
+        .btn-perspective { padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #dadce0; background: #fff; color: #5f6368; }
+        .btn-perspective:hover { background: #f0f2f5; }
+        .btn-perspective.active { background: #1a73e8; color: white; border-color: #1a73e8; }
+        .btn-download { padding: 8px 16px; background: #0d47a1; color: white; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-block; }
+        .btn-download:hover { background: #1565c0; color: white; }
+        .timetable-block { margin-bottom: 28px; }
+        .timetable-block h3 { margin: 0 0 12px; font-size: 14px; color: #1a73e8; font-weight: 600; }
+        .timetable-legend { font-size: 12px; color: #5f6368; margin-bottom: 12px; padding: 8px 12px; background: #f8f9fa; border-radius: 8px; }
+        .timetable-grid { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; border: 2px solid #1a73e8; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15); }
+        .timetable-grid th, .timetable-grid td { padding: 12px 16px; text-align: left; border: 1px solid #e0e0e0; }
+        .timetable-grid th { background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%); color: white; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .timetable-grid .time-col { background: linear-gradient(135deg, #f8f9fa 0%, #e8eaed 100%); font-weight: 700; color: #1a73e8; white-space: nowrap; width: 160px; border-right: 2px solid #1a73e8; }
+        .timetable-grid .axis-y { font-size: 12px; color: #5f6368; font-weight: 600; }
+        .timetable-grid .axis-x { font-size: 12px; color: #5f6368; font-weight: 600; }
+        .timetable-grid .break-row { background: #fff3cd; color: #856404; font-size: 13px; border-top: 2px solid #ffc107; }
+        .timetable-grid .break-row .time-col { background: #fff3cd; }
+        .timetable-grid tbody tr:nth-child(even) { background: #f8f9fa; }
+        .timetable-grid tbody tr:hover { background: #e3f2fd; transform: scale(1.01); transition: all 0.2s ease; }
+        .timetable-grid .cell-free { color: #9aa0a6; font-style: italic; background: #fafafa; }
+        .timetable-grid .cell-filled { font-size: 14px; font-weight: 600; color: #1a73e8; background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%); border-left: 3px solid #28a745; }
+        .collapsible-header {
+            display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+            user-select: none; padding: 4px 0; margin: -4px 0 16px 0;
+        }
+        .collapsible-header h2 { margin: 0; }
+        .collapsible-arrow {
+            display: inline-block; width: 20px; height: 20px; color: #5f6368;
+            transition: transform 0.2s ease;
+        }
+        .collapsible-header.collapsed .collapsible-arrow { transform: rotate(-90deg); }
+        .collapsible-body { max-height: 4000px; overflow: hidden; transition: max-height 0.25s ease; }
+        .collapsible-body.collapsed { max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+
+        .progress-outer {
+            flex: 1;
+            min-width: 240px;
+            background: #eee;
+            border-radius: 999px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-inner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #1a73e8, #1557b0);
+        }
+
+        /* Night mode (per-user preference: body.dark). */
+        body.dark { background: #121212; color: #e6e6e6; }
+        body.dark .tabs { background: #1d1d1d; border-bottom-color: #333; }
+        body.dark .tab { color: #bdbdbd; }
+        body.dark .tab:hover { background: #232323; color: #e6e6e6; }
+        body.dark .tab.active { background: #121212; color: #8ab4f8; border-color: #333; border-bottom-color: #121212; }
+        body.dark .card { background: #1e1e1e; border-color: #333; }
+        body.dark .card h2 { color: #8ab4f8; }
+        body.dark .empty-msg { color: #bdbdbd; }
+        body.dark .form-group label { color: #bdbdbd; }
+        body.dark .form-group input, body.dark .form-group select {
+            background: #2a2a2a;
+            color: #e6e6e6;
+            border-color: #444;
+        }
+        body.dark .form-group input::placeholder { color: #b0b0b0; }
+        body.dark .timetable-table { background: #1e1e1e; border-color: #333; }
+        body.dark .timetable-table th { background: #2b2b2b; color: #e6e6e6; }
+        body.dark .timetable-table td { border-bottom-color: #333; }
+        body.dark .timetable-table tbody tr:nth-child(even) { background: #232323; }
+        body.dark .timetable-table tbody tr:hover { background: #2a2a2a; }
+        body.dark .btn-secondary { background: #2b2b2b; color: #e6e6e6; }
+        body.dark .btn-secondary:hover { background: #333; }
+        body.dark .btn-perspective { background: #1e1e1e; color: #bdbdbd; border-color: #444; }
+        body.dark .btn-perspective:hover { background: #2a2a2a; }
+        body.dark .progress-outer { background: #2a2a2a; }
+    </style>
+</head>
+<body class="{% if prefs.theme == 'dark' %}dark{% else %}light{% endif %}">
+    <div class="header">
+        <h1>Guru Diary - Admin Portal</h1>
+        <div style="display:flex; gap: 10px; align-items:center;">
+            <a href="{% url 'admin_portal:dashboard' %}" class="logout-btn" style="text-decoration:none; display:inline-block;">Home</a>
+            <form method="post" action="{% url 'admin_portal:logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+    <div class="tabs">
+        <button type="button" class="tab active" data-tab="timetable">Timetable</button>
+        <button type="button" class="tab" data-tab="diary">Diary</button>
+        <button type="button" class="tab" data-tab="records">Records</button>
+        <button type="button" class="tab" data-tab="settings">Settings</button>
+    </div>
+
+    <div id="timetable" class="tab-content active">
+        <div id="timetable-message"></div>
+        <div class="card" style="display:none;">
+            <h2>Welcome</h2>
+            <p class="empty-msg" style="padding: 0; margin: 0 0 12px 0;">
+                You are signed in as <strong>{{ user.username }}</strong> (Admin).
+            </p>
+            {% if False %}
+            <div style="background: rgba(26,115,232,0.08); border: 1px solid rgba(26,115,232,0.18); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
+                <div style="font-weight:700; color:#1a73e8; margin-bottom: 6px;">Today's teaching note</div>
+                <div style="color: inherit;">"{{ daily_quote }}"</div>
+            </div>
+            {% endif %}
+            <table class="timetable-table" style="margin-top: 0;">
+                <thead>
+                    <tr>
+                        <th>Lecturers</th>
+                        <th>Classes</th>
+                        <th>Subjects</th>
+                        <th>Selections</th>
+                        <th>Generated Slots</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ stats.lecturers|default:0 }}</td>
+                        <td>{{ stats.classes|default:0 }}</td>
+                        <td>{{ stats.subjects|default:0 }}</td>
+                        <td>{{ stats.selections|default:0 }}</td>
+                        <td>{{ stats.slots|default:0 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card">
+            <h2>Publish new class</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Class name</label>
+                    <input type="text" id="class-name" placeholder="e.g. BCA 3rd Year">
+                </div>
+                <div class="form-group">
+                    <label>Class code</label>
+                    <input type="text" id="class-code-input" placeholder="e.g. BCA1">
+                </div>
+                <div class="form-group">
+                    <label>Year</label>
+                    <select id="class-year">
+                        <option value="">Select year</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Semester</label>
+                    <select id="class-semester">
+                        <option value="">Select semester</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Section</label>
+                    <select id="class-section">
+                        <option value="">No section</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-primary" id="publish-class-btn">Publish class</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Publish new subject</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Subject name</label>
+                    <input type="text" id="subject-name" placeholder="e.g. Data Structures">
+                </div>
+                <div class="form-group">
+                    <label>Subject code</label>
+                    <input type="text" id="subject-code" placeholder="e.g. DS101">
+                </div>
+                <div class="form-group">
+                    <label>Class</label>
+                    <select id="class-code">
+                        <option value="">Select class</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="subject-type">
+                        <option value="theory">Theory</option>
+                        <option value="lab">Lab</option>
+                        <option value="sec">SEC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-primary" id="publish-btn">Publish subject</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="collapsible-header" id="subjects-toggle" title="Click to expand or collapse">
+                <h2>Published subjects</h2>
+                <span class="collapsible-arrow" aria-hidden="true">▼</span>
+            </div>
+            <div class="collapsible-body" id="subjects-body">
+                <div id="subjects-container">
+                    <p class="empty-msg">Loading…</p>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="collapsible-header" id="classes-toggle" title="Click to expand or collapse">
+                <h2>Published classes</h2>
+                <span class="collapsible-arrow" aria-hidden="true">▼</span>
+            </div>
+            <div class="collapsible-body" id="classes-body">
+                <div id="classes-container">
+                    <p class="empty-msg">Loading…</p>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Timetable generation</h2>
+            <div class="form-row" style="margin-bottom: 10px;">
+                <div class="form-group">
+                    <label><input type="checkbox" id="opt-include-sat" {% if settings.working_days != 'mon-fri' %}checked{% endif %}> Include Saturday</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="opt-lab-double" {% if settings.lab_duration_periods != 1 %}checked{% endif %}> Labs take 2 periods</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="opt-clear-existing" {% if settings.clear_existing_before_regen %}checked{% endif %}> Clear existing timetable</label>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="generate-btn">Generate timetable</button>
+            <div id="generate-summary" class="empty-msg" style="padding: 12px 0 0 0;"></div>
+        </div>
+        <div class="card">
+            <div class="collapsible-header" id="timetable-toggle" title="Click to expand or collapse">
+                <h2>Generated timetable</h2>
+                <span class="collapsible-arrow" aria-hidden="true">▼</span>
+            </div>
+            <div class="collapsible-body" id="timetable-body">
+                <div class="timetable-controls">
+                    <span class="perspective-label">Perspective:</span>
+                    <button type="button" class="btn btn-perspective active" data-perspective="lecturer">Lecturer-wise</button>
+                    <button type="button" class="btn btn-perspective" data-perspective="class">Class-wise</button>
+                    <label for="lecturer-filter" id="lecturer-filter-label">Select lecturer:</label>
+                    <select id="lecturer-filter">
+                        <option value="">—</option>
+                    </select>
+                    <label for="class-filter" id="class-filter-label" style="display:none;">Select class:</label>
+                    <select id="class-filter" style="display:none;">
+                        <option value="">—</option>
+                    </select>
+                    <a href="{% url 'admin_portal:timetable_pdfs' %}" class="btn btn-download" id="download-pdfs-btn" download>Download PDFs (ZIP)</a>
+                </div>
+                <div id="timetable-container">
+                    <p class="empty-msg">Loading…</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="diary" class="tab-content">
+        <div id="diary-message"></div>
+        <div class="card">
+            <h2>Diary</h2>
+            <p class="empty-msg" style="padding: 0; margin: 0 0 12px 0;">
+                Use this diary for announcements and to review lecturer requests. Entries are immutable logs (not chat).
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Calendar & academic events</h2>
+            <div class="form-row" style="margin-bottom: 10px;">
+                <button type="button" class="btn btn-secondary" id="acal-prev">Prev</button>
+                <div class="form-group" style="min-width: 200px;">
+                    <label style="visibility:hidden;">Month</label>
+                    <div style="font-weight:700; padding: 10px 0;" id="acal-title">—</div>
+                </div>
+                <button type="button" class="btn btn-secondary" id="acal-next">Next</button>
+                <button type="button" class="btn btn-secondary" id="acal-toggle-view" data-view="month">Monthly</button>
+            </div>
+            <div id="acal-grid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 8px;"></div>
+            <div id="acal-panel" style="margin-top: 12px; padding: 12px; border: 1px solid #eee; border-radius: 12px; display:none;">
+                <div style="font-weight:700; margin-bottom: 8px;" id="acal-panel-date">—</div>
+                <div class="form-row" style="align-items:center;">
+                    <div class="form-group">
+                        <label><input type="checkbox" id="acal-holiday"> Holiday</label>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width: 260px;">
+                        <label>Day note (optional)</label>
+                        <input type="text" id="acal-note" placeholder="e.g. Festival holiday / Extra working day">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-primary" id="acal-save-day">Save day</button>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:1; min-width: 220px;">
+                        <label>Event title</label>
+                        <input type="text" id="acal-event-title" placeholder="e.g. Department meeting">
+                    </div>
+                    <div class="form-group" style="flex:2; min-width: 320px;">
+                        <label>Event message (optional)</label>
+                        <input type="text" id="acal-event-message" placeholder="e.g. 2 PM seminar hall">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-secondary" id="acal-add-event">Add event</button>
+                    </div>
+                </div>
+
+                <div id="acal-events" style="margin-top: 10px; color:#555;"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Estimated progress (overview)</h2>
+            {% if progress.percent is not None %}
+                <div style="display:flex; align-items:center; gap: 12px; flex-wrap:wrap;">
+                    <div style="font-weight:800; font-size: 18px;">{{ progress.percent }}%</div>
+                    <div class="progress-outer" data-progress="{{ progress.percent|default:0 }}">
+                        <div class="progress-inner"></div>
+                    </div>
+                </div>
+                <p class="empty-msg" style="padding: 12px 0 0 0; margin:0;">
+                    Based on working days elapsed, lecturers should be around {{ progress.percent }}% completion by now ({{ progress.counts.elapsed_working_days }}/{{ progress.counts.total_working_days }} working days).
+                </p>
+            {% else %}
+                <p class="empty-msg" style="padding: 0; margin:0;">Set semester start/end dates in Settings to enable progress estimation.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Post announcement</h2>
+            <div class="form-row">
+                <div class="form-group" style="flex: 1; min-width: 240px;">
+                    <label>Title</label>
+                    <input type="text" id="announcement-title" placeholder="e.g. Department notice">
+                </div>
+                <div class="form-group" style="flex: 2; min-width: 320px;">
+                    <label>Message</label>
+                    <input type="text" id="announcement-message" placeholder="e.g. Meeting at 2 PM in seminar hall.">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-primary" id="post-announcement-btn">Post</button>
+                </div>
+            </div>
+            <div id="announcement-msg"></div>
+        </div>
+
+        <div class="card">
+            <div class="collapsible-header" id="requests-toggle" title="Click to expand or collapse">
+                <h2>Lecturer requests</h2>
+                <span class="collapsible-arrow" aria-hidden="true">v</span>
+            </div>
+            <div class="collapsible-body" id="requests-body">
+                <div id="requests-container">
+                    {% if diary.requests %}
+                        <table class="timetable-table">
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    <th>Lecturer</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Reply</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in diary.requests %}
+                                    <tr>
+                                        <td>{{ r.created_at }}</td>
+                                        <td>{{ r.lecturer.username }}</td>
+                                        <td>{{ r.get_request_type_display }}</td>
+                                        <td style="max-width: 420px; white-space: normal;">{{ r.description }}</td>
+                                        <td><span data-req-status="{{ r.id }}">{{ r.get_status_display }}</span></td>
+                                        <td style="max-width: 420px; white-space: normal;">
+                                            {% if r.admin_reply %}
+                                                {{ r.admin_reply }}
+                                            {% else %}
+                                                <input type="text" id="reply-{{ r.id }}" placeholder="Reply once..." style="width: 100%;">
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if r.status == 'open' %}
+                                                <button type="button" class="btn btn-secondary diary-seen-btn" data-id="{{ r.id }}">Mark seen</button>
+                                            {% endif %}
+                                            {% if not r.admin_reply %}
+                                                <button type="button" class="btn btn-secondary diary-reply-btn" data-id="{{ r.id }}">Send reply</button>
+                                            {% endif %}
+                                            {% if r.status != 'resolved' %}
+                                                <button type="button" class="btn btn-secondary diary-resolve-btn" data-id="{{ r.id }}">Resolve</button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="empty-msg">No lecturer requests yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="collapsible-header" id="announcements-toggle" title="Click to expand or collapse">
+                <h2>Announcements (latest)</h2>
+                <span class="collapsible-arrow" aria-hidden="true">v</span>
+            </div>
+            <div class="collapsible-body" id="announcements-body">
+                {% if diary.announcements %}
+                    <table class="timetable-table">
+                        <thead>
+                            <tr><th>When</th><th>Title</th><th>Message</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for e in diary.announcements %}
+                                <tr>
+                                    <td>{{ e.created_at }}</td>
+                                    <td>{{ e.title }}</td>
+                                    <td style="white-space: normal;">{{ e.message }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="empty-msg">No announcements yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="collapsible-header" id="system-toggle" title="Click to expand or collapse">
+                <h2>System diary (read-only)</h2>
+                <span class="collapsible-arrow" aria-hidden="true">v</span>
+            </div>
+            <div class="collapsible-body" id="system-body">
+                {% if diary.system_entries %}
+                    <table class="timetable-table">
+                        <thead>
+                            <tr><th>When</th><th>Type</th><th>Title</th><th>Message</th><th>Lecturer</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for e in diary.system_entries %}
+                                <tr>
+                                    <td>{{ e.created_at }}</td>
+                                    <td>{{ e.entry_type }}</td>
+                                    <td>{{ e.title }}</td>
+                                    <td style="white-space: normal;">{{ e.message }}</td>
+                                    <td>{{ e.lecturer.username|default:"--" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="empty-msg">No system entries yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="settings" class="tab-content">
+        <div id="settings-message"></div>
+
+        <div class="card">
+            <h2>UI preferences</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Theme</label>
+                    <select id="admin-theme">
+                        <option value="light" {% if prefs.theme != 'dark' %}selected{% endif %}>Light</option>
+                        <option value="dark" {% if prefs.theme == 'dark' %}selected{% endif %}>Dark</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-primary" id="save-admin-theme-btn">Save theme</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Academic configuration</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Academic year</label>
+                    <input type="text" id="set-academic-year" value="{{ settings.academic_year|default:'' }}" placeholder="e.g. 2025-26">
+                </div>
+                <div class="form-group">
+                    <label>Current semester</label>
+                    <input type="number" id="set-current-semester" value="{{ settings.current_semester|default:1 }}" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>Semester start date</label>
+                    <input type="date" id="set-sem-start" value="{{ settings.semester_start_date|date:'Y-m-d'|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>Semester end date</label>
+                    <input type="date" id="set-sem-end" value="{{ settings.semester_end_date|date:'Y-m-d'|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Working rules</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Working days</label>
+                    <select id="set-working-days">
+                        <option value="mon-fri" {% if settings.working_days == 'mon-fri' %}selected{% endif %}>Mon-Fri</option>
+                        <option value="mon-sat" {% if settings.working_days != 'mon-fri' %}selected{% endif %}>Mon-Sat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Periods per day</label>
+                    <input type="number" id="set-periods-per-day" value="{{ settings.periods_per_day|default:6 }}" min="1" max="12">
+                </div>
+                <div class="form-group">
+                    <label>Period duration (minutes)</label>
+                    <input type="number" id="set-period-duration" value="{{ settings.period_duration_minutes|default:60 }}" min="30" max="180">
+                </div>
+                <div class="form-group">
+                    <label>Break after period (0 = none)</label>
+                    <input type="number" id="set-break-pos" value="{{ settings.break_period_position|default:0 }}" min="0" max="12">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Timetable rules</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Max hours per lecturer per week (0 = no limit)</label>
+                    <input type="number" id="set-max-hours" value="{{ settings.max_hours_per_lecturer_per_week|default:0 }}" min="0" max="80">
+                </div>
+                <div class="form-group">
+                    <label>Lab duration (periods)</label>
+                    <select id="set-lab-duration">
+                        <option value="1" {% if settings.lab_duration_periods == 1 %}selected{% endif %}>1</option>
+                        <option value="2" {% if settings.lab_duration_periods != 1 %}selected{% endif %}>2</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="set-allow-consecutive-labs" {% if settings.allow_consecutive_labs %}checked{% endif %}> Allow consecutive labs</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="set-clear-before-regen" {% if settings.clear_existing_before_regen %}checked{% endif %}> Clear existing timetable before regeneration</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>System preferences</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label><input type="checkbox" id="set-auto-logging" {% if settings.enable_diary_auto_logging %}checked{% endif %}> Enable diary auto-logging</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="set-allow-requests" {% if settings.allow_lecturer_requests %}checked{% endif %}> Allow lecturers to raise diary requests</label>
+                </div>
+                <div class="form-group" style="min-width: 260px;">
+                    <label>Admin email for alerts</label>
+                    <input type="email" id="set-admin-email" value="{{ settings.admin_email_for_alerts|default:'' }}" placeholder="admin@example.com">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-primary" id="save-settings-btn">Save settings</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Security</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Old password</label>
+                    <input type="password" id="admin-old-password">
+                </div>
+                <div class="form-group">
+                    <label>New password</label>
+                    <input type="password" id="admin-new-password1">
+                </div>
+                <div class="form-group">
+                    <label>Confirm new password</label>
+                    <input type="password" id="admin-new-password2">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-secondary" id="admin-change-password-btn">Change password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="records" class="tab-content">
+        <div id="records-message"></div>
+        <div class="card">
+            <h2>Records</h2>
+            <p class="empty-msg" style="padding: 0; margin: 0 0 12px 0;">
+                Records are immutable archives of past academic data. Archiving does not change the live timetable.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Archive current timetable</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Academic year</label>
+                    <input type="text" id="arc-academic-year" value="{{ settings.academic_year|default:'' }}" placeholder="e.g. 2025-26">
+                </div>
+                <div class="form-group">
+                    <label>Semester</label>
+                    <input type="number" id="arc-semester" value="{{ settings.current_semester|default:1 }}" min="1" max="10">
+                </div>
+                <div class="form-group" style="min-width: 280px;">
+                    <label>Note (optional)</label>
+                    <input type="text" id="arc-note" placeholder="e.g. End of semester archive">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-primary" id="archive-now-btn">Archive now</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Archived timetables</h2>
+            {% if records.archives %}
+                <table class="timetable-table">
+                    <thead>
+                        <tr>
+                            <th>When</th>
+                            <th>Academic year</th>
+                            <th>Semester</th>
+                            <th>Note</th>
+                            <th>Downloads</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in records.archives %}
+                            <tr>
+                                <td>{{ a.created_at }}</td>
+                                <td>{{ a.academic_year }}</td>
+                                <td>{{ a.semester }}</td>
+                                <td>{{ a.note|default:"—" }}</td>
+                                <td>
+                                    <a class="btn btn-download" href="{% url 'admin_portal:records_timetable_pdfs' a.id %}" download>PDFs (ZIP)</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="empty-msg">No archives yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <p class="lecturer-link" style="padding: 0 24px;">Lecturer site: <a href="/">Open lecturer website</a></p>
+
+    <script>
+        (function() {
+            var API_BASE = '{% url "admin_portal:dashboard" %}';
+            API_BASE = API_BASE.replace(/\/$/, '');
+            function getCookie(name) {
+                var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+                return v ? v[2] : null;
+            }
+            function csrfHeaders() {
+                var c = getCookie('csrftoken');
+                return c ? { 'X-CSRFToken': c, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+            }
+
+            // Collapsible: click header to expand/collapse (arrow rotates)
+            function toggleCollapse(headerId, bodyId) {
+                var header = document.getElementById(headerId);
+                var body = document.getElementById(bodyId);
+                if (!header || !body) return;
+                header.classList.toggle('collapsed');
+                body.classList.toggle('collapsed');
+            }
+            document.getElementById('subjects-toggle').addEventListener('click', function() {
+                toggleCollapse('subjects-toggle', 'subjects-body');
+            });
+            document.getElementById('classes-toggle').addEventListener('click', function() {
+                toggleCollapse('classes-toggle', 'classes-body');
+            });
+            document.getElementById('timetable-toggle').addEventListener('click', function() {
+                toggleCollapse('timetable-toggle', 'timetable-body');
+            });
+            var requestsToggle = document.getElementById('requests-toggle');
+            if (requestsToggle) requestsToggle.addEventListener('click', function() { toggleCollapse('requests-toggle', 'requests-body'); });
+            var announcementsToggle = document.getElementById('announcements-toggle');
+            if (announcementsToggle) announcementsToggle.addEventListener('click', function() { toggleCollapse('announcements-toggle', 'announcements-body'); });
+            var systemToggle = document.getElementById('system-toggle');
+            if (systemToggle) systemToggle.addEventListener('click', function() { toggleCollapse('system-toggle', 'system-body'); });
+
+            // Tabs
+            document.querySelectorAll('.tab').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('active'); });
+                    document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+                    btn.classList.add('active');
+                    var id = btn.getAttribute('data-tab');
+                    document.getElementById(id).classList.add('active');
+                });
+            });
+
+            // Timetable is the default active tab.
+
+            function showMessage(containerId, text, isError) {
+                var el = document.getElementById(containerId);
+                el.innerHTML = '<div class="message ' + (isError ? 'error' : 'success') + '">' + text + '</div>';
+                setTimeout(function() { el.innerHTML = ''; }, 4000);
+            }
+
+            function showInline(containerId, text, isError) {
+                var el = document.getElementById(containerId);
+                if (!el) return;
+                el.innerHTML = '<div class="message ' + (isError ? 'error' : 'success') + '">' + text + '</div>';
+                setTimeout(function() { el.innerHTML = ''; }, 4000);
+            }
+
+            // Post announcement
+            var postBtn = document.getElementById('post-announcement-btn');
+            if (postBtn) {
+                postBtn.addEventListener('click', function() {
+                    var title = (document.getElementById('announcement-title').value || '').trim();
+                    var message = (document.getElementById('announcement-message').value || '').trim();
+                    if (!title && !message) {
+                        showInline('announcement-msg', 'Please enter a title or message.', true);
+                        return;
+                    }
+                    var body = new URLSearchParams({ title: title, message: message });
+                    fetch(API_BASE + '/api/diary/announcement/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function(r) {
+                        return r.json().then(function(d) {
+                            if (r.status === 201) {
+                                showInline('announcement-msg', d.message || 'Announcement posted.');
+                                document.getElementById('announcement-title').value = '';
+                                document.getElementById('announcement-message').value = '';
+                                // easiest: refresh so the announcements list updates
+                                setTimeout(function() { location.reload(); }, 400);
+                            } else {
+                                showInline('announcement-msg', d.error || 'Failed to post.', true);
+                            }
+                        });
+                    }).catch(function() {
+                        showInline('announcement-msg', 'Connection error.', true);
+                    });
+                });
+            }
+
+            function postAction(url, okMsg) {
+                return fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' }
+                }).then(function(r) { return r.json().then(function(d) { return { r: r, d: d }; }); })
+                  .then(function(res) {
+                      if (res.r.ok) {
+                          showMessage('diary-message', okMsg || res.d.message || 'Done');
+                          setTimeout(function() { location.reload(); }, 400);
+                      } else {
+                          showMessage('diary-message', res.d.error || 'Failed', true);
+                      }
+                  })
+                  .catch(function() { showMessage('diary-message', 'Connection error.', true); });
+            }
+
+            // Requests actions
+            document.querySelectorAll('.diary-seen-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = btn.getAttribute('data-id');
+                    postAction(API_BASE + '/api/diary/requests/' + id + '/seen/', 'Marked as seen.');
+                });
+            });
+            document.querySelectorAll('.diary-resolve-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = btn.getAttribute('data-id');
+                    postAction(API_BASE + '/api/diary/requests/' + id + '/resolve/', 'Marked as resolved.');
+                });
+            });
+            document.querySelectorAll('.diary-reply-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = btn.getAttribute('data-id');
+                    var input = document.getElementById('reply-' + id);
+                    var reply = input ? (input.value || '').trim() : '';
+                    if (!reply) {
+                        showMessage('diary-message', 'Reply cannot be empty.', true);
+                        return;
+                    }
+                    var body = new URLSearchParams({ reply: reply });
+                    fetch(API_BASE + '/api/diary/requests/' + id + '/reply/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function(r) {
+                        return r.json().then(function(d) {
+                            if (r.ok) {
+                                showMessage('diary-message', d.message || 'Reply saved.');
+                                setTimeout(function() { location.reload(); }, 400);
+                            } else {
+                                showMessage('diary-message', d.error || 'Failed', true);
+                            }
+                        });
+                    }).catch(function() {
+                        showMessage('diary-message', 'Connection error.', true);
+                    });
+                });
+            });
+
+            // Diary calendar (Admin)
+            (function() {
+                var now = new Date();
+                var year = now.getFullYear();
+                var month = now.getMonth() + 1;
+                var view = 'month';
+                var selected = null;
+
+                var title = document.getElementById('acal-title');
+                var grid = document.getElementById('acal-grid');
+                var panel = document.getElementById('acal-panel');
+                var panelDate = document.getElementById('acal-panel-date');
+                var isHoliday = document.getElementById('acal-holiday');
+                var note = document.getElementById('acal-note');
+                var eventsEl = document.getElementById('acal-events');
+
+                if (!title || !grid) return;
+
+                function ymLabel(y, m) {
+                    var d = new Date(y, m - 1, 1);
+                    return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+                }
+
+                function render(days) {
+                    title.textContent = ymLabel(year, month) + (view === 'week' ? ' (Weekly)' : '');
+                    grid.innerHTML = '';
+
+                    var weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                    weekdays.forEach(function(w) {
+                        var h = document.createElement('div');
+                        h.textContent = w;
+                        h.style.fontWeight = '800';
+                        h.style.color = '#5f6368';
+                        grid.appendChild(h);
+                    });
+
+                    var first = new Date(year, month - 1, 1);
+                    var pad = (first.getDay() + 6) % 7;
+                    for (var i = 0; i < pad; i++) grid.appendChild(document.createElement('div'));
+
+                    var list = days;
+                    if (view === 'week') {
+                        var start = new Date(now);
+                        start.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+                        var end = new Date(start);
+                        end.setDate(start.getDate() + 6);
+                        var startIso = start.toISOString().slice(0,10);
+                        var endIso = end.toISOString().slice(0,10);
+                        list = days.filter(function(d) { return d.date >= startIso && d.date <= endIso; });
+                    }
+
+                    list.forEach(function(d) {
+                        var cell = document.createElement('button');
+                        cell.type = 'button';
+                        cell.style.border = '1px solid #eee';
+                        cell.style.borderRadius = '10px';
+                        cell.style.padding = '10px';
+                        cell.style.background = d.is_holiday ? '#fff3cd' : (d.is_working_day ? '#f8f9fa' : '#f0f2f5');
+                        cell.style.cursor = 'pointer';
+                        cell.style.textAlign = 'left';
+                        cell.innerHTML = '<div style="font-weight:800;">' + d.date.slice(-2) + '</div>' +
+                            '<div style="font-size:12px; color:#5f6368;">' + (d.is_holiday ? 'Holiday' : (d.is_working_day ? 'Working' : 'Off')) + '</div>' +
+                            (d.events && d.events.length ? ('<div style="margin-top:6px; font-size:12px; color:#1a73e8;">' + d.events.length + ' event(s)</div>') : '');
+                        cell.addEventListener('click', function() {
+                            selected = d;
+                            if (panel) panel.style.display = 'block';
+                            if (panelDate) panelDate.textContent = d.date;
+                            if (isHoliday) isHoliday.checked = !!d.is_holiday;
+                            if (note) note.value = d.note || '';
+                            if (eventsEl) {
+                                eventsEl.innerHTML = '';
+                                if (d.events && d.events.length) {
+                                    eventsEl.innerHTML = '<div style="font-weight:700; margin-bottom:6px;">Events</div>' +
+                                        d.events.map(function(e){ return '<div style="margin-bottom:6px;"><b>' + e.title + '</b>' + (e.message ? (': ' + e.message) : '') + '</div>'; }).join('');
+                                }
+                            }
+                        });
+                        grid.appendChild(cell);
+                    });
+                }
+
+                function load() {
+                    fetch(API_BASE + '/api/diary/calendar/?year=' + year + '&month=' + month)
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) { render(data.days || []); })
+                        .catch(function() { title.textContent = 'Could not load calendar.'; });
+                }
+
+                var prev = document.getElementById('acal-prev');
+                var next = document.getElementById('acal-next');
+                var toggle = document.getElementById('acal-toggle-view');
+                var saveDay = document.getElementById('acal-save-day');
+                var addEvent = document.getElementById('acal-add-event');
+
+                if (prev) prev.addEventListener('click', function() { month--; if (month < 1) { month = 12; year--; } load(); });
+                if (next) next.addEventListener('click', function() { month++; if (month > 12) { month = 1; year++; } load(); });
+                if (toggle) toggle.addEventListener('click', function() {
+                    view = (view === 'month') ? 'week' : 'month';
+                    toggle.textContent = (view === 'month') ? 'Monthly' : 'Weekly';
+                    load();
+                });
+
+                if (saveDay) saveDay.addEventListener('click', function() {
+                    if (!selected) return;
+                    var body = new URLSearchParams({
+                        date: selected.date,
+                        is_holiday: (isHoliday && isHoliday.checked) ? 'true' : 'false',
+                        note: note ? (note.value || '') : ''
+                    });
+                    fetch(API_BASE + '/api/diary/calendar/day/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function() { load(); });
+                });
+
+                if (addEvent) addEvent.addEventListener('click', function() {
+                    if (!selected) return;
+                    var et = document.getElementById('acal-event-title');
+                    var em = document.getElementById('acal-event-message');
+                    var titleVal = et ? (et.value || '').trim() : '';
+                    if (!titleVal) { showMessage('diary-message', 'Event title is required.', true); return; }
+                    var body = new URLSearchParams({
+                        date: selected.date,
+                        title: titleVal,
+                        message: em ? (em.value || '') : ''
+                    });
+                    fetch(API_BASE + '/api/diary/calendar/event/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function(r) {
+                        return r.json().then(function(d) {
+                            if (r.status === 201) {
+                                showMessage('diary-message', d.message || 'Event added.');
+                                if (et) et.value = '';
+                                if (em) em.value = '';
+                                load();
+                            } else {
+                                showMessage('diary-message', d.error || 'Failed to add event.', true);
+                            }
+                        });
+                    });
+                });
+
+                load();
+            })();
+
+            // Save admin settings
+            var saveBtn = document.getElementById('save-settings-btn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function() {
+                    var body = new URLSearchParams({
+                        academic_year: (document.getElementById('set-academic-year').value || '').trim(),
+                        current_semester: document.getElementById('set-current-semester').value,
+                        semester_start_date: document.getElementById('set-sem-start').value,
+                        semester_end_date: document.getElementById('set-sem-end').value,
+                        working_days: document.getElementById('set-working-days').value,
+                        periods_per_day: document.getElementById('set-periods-per-day').value,
+                        period_duration_minutes: document.getElementById('set-period-duration').value,
+                        break_period_position: document.getElementById('set-break-pos').value,
+                        max_hours_per_lecturer_per_week: document.getElementById('set-max-hours').value,
+                        lab_duration_periods: document.getElementById('set-lab-duration').value,
+                        allow_consecutive_labs: document.getElementById('set-allow-consecutive-labs').checked ? 'true' : 'false',
+                        clear_existing_before_regen: document.getElementById('set-clear-before-regen').checked ? 'true' : 'false',
+                        enable_diary_auto_logging: document.getElementById('set-auto-logging').checked ? 'true' : 'false',
+                        allow_lecturer_requests: document.getElementById('set-allow-requests').checked ? 'true' : 'false',
+                        admin_email_for_alerts: (document.getElementById('set-admin-email').value || '').trim()
+                    });
+                    fetch(API_BASE + '/api/settings/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function(r) {
+                        return r.json().then(function(d) {
+                            if (r.ok) {
+                                showMessage('settings-message', d.message || 'Settings saved.');
+                            } else {
+                                showMessage('settings-message', d.error || 'Failed to save settings.', true);
+                            }
+                        });
+                    }).catch(function() {
+                        showMessage('settings-message', 'Connection error.', true);
+                    });
+                });
+            }
+
+            // Save admin theme preference (per-user)
+            var themeBtn = document.getElementById('save-admin-theme-btn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    var theme = document.getElementById('admin-theme').value;
+                    var body = new URLSearchParams({ theme: theme });
+                    fetch(API_BASE + '/api/preferences/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function(r) {
+                        return r.json().then(function(d) {
+                            if (r.ok) {
+                                showMessage('settings-message', d.message || 'Theme saved.');
+                                setTimeout(function() { location.reload(); }, 350);
+                            } else {
+                                showMessage('settings-message', d.error || 'Failed to save theme.', true);
+                            }
+                        });
+                    }).catch(function() {
+                        showMessage('settings-message', 'Connection error.', true);
+                    });
+                });
+            }
+
+            // Admin change password
+            var pwdBtn = document.getElementById('admin-change-password-btn');
+            if (pwdBtn) {
+                pwdBtn.addEventListener('click', function() {
+                    var body = new URLSearchParams({
+                        old_password: document.getElementById('admin-old-password').value || '',
+                        new_password1: document.getElementById('admin-new-password1').value || '',
+                        new_password2: document.getElementById('admin-new-password2').value || ''
+                    });
+                    fetch(API_BASE + '/api/settings/change-password/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function(r) {
+                        return r.json().then(function(d) {
+                            if (r.ok) {
+                                showMessage('settings-message', d.message || 'Password changed.');
+                                document.getElementById('admin-old-password').value = '';
+                                document.getElementById('admin-new-password1').value = '';
+                                document.getElementById('admin-new-password2').value = '';
+                            } else {
+                                var details = d.details ? JSON.stringify(d.details) : '';
+                                showMessage('settings-message', (d.error || 'Failed to change password.') + (details ? ' ' + details : ''), true);
+                            }
+                        });
+                    }).catch(function() {
+                        showMessage('settings-message', 'Connection error.', true);
+                    });
+                });
+            }
+
+            // Archive current timetable
+            var arcBtn = document.getElementById('archive-now-btn');
+            if (arcBtn) {
+                arcBtn.addEventListener('click', function() {
+                    if (!confirm('Archive the current timetable? This will create an immutable record snapshot.')) return;
+                    var body = new URLSearchParams({
+                        academic_year: (document.getElementById('arc-academic-year').value || '').trim(),
+                        semester: document.getElementById('arc-semester').value,
+                        note: (document.getElementById('arc-note').value || '').trim()
+                    });
+                    fetch(API_BASE + '/api/records/archive/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                        body: body
+                    }).then(function(r) {
+                        return r.json().then(function(d) {
+                            if (r.status === 201) {
+                                showMessage('records-message', d.message || 'Archived.');
+                                setTimeout(function() { location.reload(); }, 500);
+                            } else {
+                                showMessage('records-message', d.error || 'Failed to archive.', true);
+                            }
+                        });
+                    }).catch(function() {
+                        showMessage('records-message', 'Connection error.', true);
+                    });
+                });
+            }
+
+            // Publish class
+            document.getElementById('publish-class-btn').addEventListener('click', function() {
+                var name = document.getElementById('class-name').value.trim();
+                var code = document.getElementById('class-code-input').value.trim();
+                var year = document.getElementById('class-year').value;
+                var semester = document.getElementById('class-semester').value;
+                var section = document.getElementById('class-section').value;
+                if (!name || !code || !year || !semester) {
+                    showMessage('timetable-message', 'Please enter class name, code, year, and semester.', true);
+                    return;
+                }
+                var formBody = new URLSearchParams({
+                    name: name,
+                    code: code,
+                    year: String(parseInt(year)),
+                    semester: String(parseInt(semester)),
+                    section: section || ''
+                });
+                fetch(API_BASE + '/publish-class/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                    body: formBody
+                }).then(function(r) {
+                    return r.json().then(function(data) {
+                        if (r.status === 201) {
+                            showMessage('timetable-message', 'Class published successfully.');
+                            document.getElementById('class-name').value = '';
+                            document.getElementById('class-code-input').value = '';
+                            document.getElementById('class-year').value = '';
+                            document.getElementById('class-semester').value = '';
+                            document.getElementById('class-section').value = '';
+                            loadClassDropdown(); // Refresh class dropdown
+                            loadClasses(); // Refresh classes list
+                        } else {
+                            showMessage('timetable-message', data.error || 'Failed to publish class.', true);
+                        }
+                    });
+                }).catch(function() {
+                    showMessage('timetable-message', 'Connection error.', true);
+                });
+            });
+
+            // Publish subject
+            document.getElementById('publish-btn').addEventListener('click', function() {
+                var name = document.getElementById('subject-name').value.trim();
+                var code = document.getElementById('subject-code').value.trim();
+                var classCode = document.getElementById('class-code').value;
+                var electiveType = document.getElementById('subject-type').value;
+                if (!name || !code) {
+                    showMessage('timetable-message', 'Please enter subject name and code.', true);
+                    return;
+                }
+                if (!classCode) {
+                    showMessage('timetable-message', 'Please select a class.', true);
+                    return;
+                }
+                var formBody = new URLSearchParams({
+                    name: name,
+                    code: code,
+                    class_code: classCode,
+                    elective_type: electiveType
+                });
+                fetch(API_BASE + '/api/publish-subject/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+                    body: formBody
+                }).then(function(r) {
+                    return r.json().then(function(data) {
+                        if (r.status === 201) {
+                            showMessage('timetable-message', 'Subject published successfully.');
+                            document.getElementById('subject-name').value = '';
+                            document.getElementById('subject-code').value = '';
+                            loadSubjects();
+                        } else {
+                            showMessage('timetable-message', data.error || 'Failed to publish.', true);
+                        }
+                    });
+                }).catch(function() {
+                    showMessage('timetable-message', 'Connection error.', true);
+                });
+            });
+
+            // Generate timetable
+            document.getElementById('generate-btn').addEventListener('click', function() {
+                var includeSaturday = document.getElementById('opt-include-sat') ? document.getElementById('opt-include-sat').checked : true;
+                var labDouble = document.getElementById('opt-lab-double') ? document.getElementById('opt-lab-double').checked : true;
+                var clearExisting = document.getElementById('opt-clear-existing') ? document.getElementById('opt-clear-existing').checked : true;
+                var summaryEl = document.getElementById('generate-summary');
+                if (summaryEl) summaryEl.textContent = 'Generating...';
+                fetch(API_BASE + '/api/generate-timetable/', {
+                    method: 'POST',
+                    headers: csrfHeaders(),
+                    body: JSON.stringify({
+                        include_saturday: includeSaturday,
+                        lab_double_period: labDouble,
+                        clear_existing: clearExisting
+                    })
+                }).then(function(r) {
+                    if (r.ok) {
+                        r.json().then(function(d) {
+                            showMessage('timetable-message', d.message || 'Timetable generated successfully.');
+                            if (summaryEl) {
+                                var created = (d.created_slots != null) ? d.created_slots : '--';
+                                var skipped = (d.skipped_selections != null) ? d.skipped_selections : '--';
+                                var reasons = d.reasons ? JSON.stringify(d.reasons) : '';
+                                summaryEl.textContent = 'Created slots: ' + created + ' | Skipped selections: ' + skipped + (reasons ? ' | Details: ' + reasons : '');
+                            }
+                            loadTimetable();
+                        });
+                    } else {
+                        r.json().then(function(d) {
+                            showMessage('timetable-message', d.error || 'Failed to generate.', true);
+                            if (summaryEl) summaryEl.textContent = d.error || 'Failed to generate.';
+                        });
+                    }
+                }).catch(function() {
+                    showMessage('timetable-message', 'Connection error.', true);
+                    if (summaryEl) summaryEl.textContent = 'Connection error.';
+                });
+            });
+            function loadSubjects() {
+                var container = document.getElementById('subjects-container');
+                fetch(API_BASE + '/api/subjects/').then(function(r) { return r.json(); }).then(function(data) {
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<p class="empty-msg">No subjects yet. Publish a subject above.</p>';
+                        return;
+                    }
+                    var html = '<table class="timetable-table"><thead><tr><th>Code</th><th>Name</th><th>Class</th><th>Type</th><th>Actions</th></tr></thead><tbody>';
+                    data.forEach(function(s) {
+                        html += '<tr><td>' + (s.code || '') + '</td><td>' + (s.name || '') + '</td><td>' + (s.class_name || '') + '</td><td>' + (s.subject_type || 'Regular') + '</td><td><button type="button" class="btn btn-secondary" onclick="deleteSubject(' + s.id + ')">Delete</button></td></tr>';
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                }).catch(function() {
+                    container.innerHTML = '<p class="empty-msg">Could not load subjects.</p>';
+                });
+            }
+
+            window.deleteSubject = function deleteSubject(subjectId) {
+                if (!confirm('Are you sure you want to delete this subject?')) return;
+                fetch(API_BASE + '/api/subjects/' + subjectId + '/delete/', {
+                    method: 'DELETE',
+                    headers: csrfHeaders()
+                }).then(function(r) {
+                    return r.json().then(function(data) {
+                        if (r.status === 200) {
+                            showMessage('timetable-message', 'Subject deleted successfully.');
+                            loadSubjects();
+                        } else {
+                            showMessage('timetable-message', data.error || 'Failed to delete subject.', true);
+                        }
+                    });
+                }).catch(function() {
+                    showMessage('timetable-message', 'Connection error.', true);
+                });
+            }
+
+            function loadClasses() {
+                var container = document.getElementById('classes-container');
+                fetch(API_BASE + '/api/classes/').then(function(r) { return r.json(); }).then(function(data) {
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<p class="empty-msg">No classes yet. Publish a class above.</p>';
+                        return;
+                    }
+                    var html = '<table class="timetable-table"><thead><tr><th>Code</th><th>Name</th><th>Year</th><th>Semester</th><th>Section</th><th>Actions</th></tr></thead><tbody>';
+                    data.forEach(function(c) {
+                        html += '<tr><td>' + (c.code || '') + '</td><td>' + (c.name || '') + '</td><td>' + (c.year || '') + '</td><td>' + (c.semester || '') + '</td><td>' + (c.section || '—') + '</td><td><button type="button" class="btn btn-secondary" onclick="deleteClass(' + c.id + ')">Delete</button></td></tr>';
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                }).catch(function() {
+                    container.innerHTML = '<p class="empty-msg">Could not load classes.</p>';
+                });
+            }
+
+            window.deleteClass = function deleteClass(classId) {
+                if (!confirm('Are you sure you want to delete this class?')) return;
+                fetch(API_BASE + '/api/classes/' + classId + '/delete/', {
+                    method: 'DELETE',
+                    headers: csrfHeaders()
+                }).then(function(r) {
+                    return r.json().then(function(data) {
+                        if (r.status === 200) {
+                            showMessage('timetable-message', 'Class deleted successfully.');
+                            loadClasses();
+                        } else {
+                            showMessage('timetable-message', data.error || 'Failed to delete class.', true);
+                        }
+                    });
+                }).catch(function() {
+                    showMessage('timetable-message', 'Connection error.', true);
+                });
+            }
+
+            var timetableData = [];
+            var currentPerspective = 'lecturer';
+            var DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            var PERIOD_LABELS = [
+                { period: 1, label: '1st (9:50–10:50)' },
+                { period: 2, label: '2nd (10:50–11:50)' },
+                { period: 3, label: '3rd (12:00–1:00)' },
+                { period: 4, label: '4th (1:00–2:00)' },
+                { period: 5, label: '5th (2:30–3:30)' },
+                { period: 6, label: '6th (3:30–4:30)' }
+            ];
+
+            function oneGrid(byKey, cellFmt) {
+                var html = '<table class="timetable-grid"><thead><tr><th class="time-col axis-y">−Y (Period)</th>';
+                DAYS.forEach(function(d) { html += '<th class="axis-x">' + d.slice(0, 3) + '</th>'; });
+                html += '</tr></thead><tbody>';
+                PERIOD_LABELS.forEach(function(p) {
+                    html += '<tr><td class="time-col">' + p.label + '</td>';
+                    DAYS.forEach(function(day) {
+                        var key = day + '_' + p.period;
+                        var cell = byKey[key];
+                        html += '<td class="' + (cell ? 'cell-filled' : 'cell-free') + '">' + (cell ? cellFmt(cell) : '—') + '</td>';
+                    });
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                return html;
+            }
+
+            function renderTimetable(data) {
+                var container = document.getElementById('timetable-container');
+                var lecturerFilter = document.getElementById('lecturer-filter');
+                var classFilter = document.getElementById('class-filter');
+                var lecturerLabel = document.getElementById('lecturer-filter-label');
+                var classLabel = document.getElementById('class-filter-label');
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="empty-msg">No slots yet. Publish subjects and generate the timetable.</p>';
+                    if (lecturerFilter) { lecturerFilter.innerHTML = '<option value="">—</option>'; }
+                    if (classFilter) { classFilter.innerHTML = '<option value="">—</option>'; }
+                    return;
+                }
+
+                var lecturers = [];
+                var classes = [];
+                var byLecturer = {};
+                var byClass = {};
+                data.forEach(function(s) {
+                    if (!s.day || !s.period) return;
+                    var key = (s.day || '') + '_' + (s.period || 0);
+                    if (!byLecturer[s.lecturer]) byLecturer[s.lecturer] = {};
+                    byLecturer[s.lecturer][key] = { subject: s.subject, subject_code: s.subject_code, class: s.class };
+                    var cls = s.class || '';
+                    if (cls) {
+                        if (!byClass[cls]) byClass[cls] = {};
+                        byClass[cls][key] = { subject: s.subject, subject_code: s.subject_code, lecturer: s.lecturer };
+                    }
+                });
+                lecturers = Object.keys(byLecturer).sort();
+                classes = Object.keys(byClass).sort();
+
+                if (currentPerspective === 'lecturer') {
+                    lecturerLabel.style.display = '';
+                    lecturerFilter.style.display = '';
+                    classLabel.style.display = 'none';
+                    classFilter.style.display = 'none';
+                    lecturerFilter.innerHTML = '<option value="">All lecturers</option>';
+                    lecturers.forEach(function(l) { lecturerFilter.innerHTML += '<option value="' + l + '">' + l + '</option>'; });
+                    var sel = lecturerFilter.value;
+                    if (sel) {
+                        var grid = byLecturer[sel] || {};
+                        container.innerHTML = '<div class="timetable-block"><h3>Lecturer: ' + sel + '</h3>' + oneGrid(grid, function(c) {
+                            return (c.subject_code || '') + ' ' + (c.subject || '') + ' — ' + (c.class || '');
+                        }) + '</div>';
+                    } else {
+                        var parts = [];
+                        lecturers.forEach(function(lec) {
+                            var grid = byLecturer[lec] || {};
+                            parts.push('<div class="timetable-block"><h3>Lecturer: ' + lec + '</h3>' + oneGrid(grid, function(c) {
+                                return (c.subject_code || '') + ' ' + (c.subject || '') + ' — ' + (c.class || '');
+                            }) + '</div>');
+                        });
+                        container.innerHTML = parts.join('');
+                    }
+                } else {
+                    classLabel.style.display = '';
+                    classFilter.style.display = '';
+                    lecturerLabel.style.display = 'none';
+                    lecturerFilter.style.display = 'none';
+                    classFilter.innerHTML = '<option value="">All classes</option>';
+                    classes.forEach(function(c) { classFilter.innerHTML += '<option value="' + c + '">' + c + '</option>'; });
+                    var sel = classFilter.value;
+                    if (sel) {
+                        var grid = byClass[sel] || {};
+                        container.innerHTML = '<div class="timetable-block"><h3>Class: ' + sel + '</h3>' + oneGrid(grid, function(c) {
+                            return (c.subject_code || '') + ' ' + (c.subject || '') + ' — ' + (c.lecturer || '');
+                        }) + '</div>';
+                    } else {
+                        var parts = [];
+                        classes.forEach(function(cls) {
+                            var grid = byClass[cls] || {};
+                            parts.push('<div class="timetable-block"><h3>Class: ' + cls + '</h3>' + oneGrid(grid, function(c) {
+                                return (c.subject_code || '') + ' ' + (c.subject || '') + ' — ' + (c.lecturer || '');
+                            }) + '</div>');
+                        });
+                        container.innerHTML = parts.join('');
+                    }
+                }
+            }
+
+            function loadTimetable() {
+                var container = document.getElementById('timetable-container');
+                container.innerHTML = '<p class="empty-msg">Loading…</p>';
+                fetch(API_BASE + '/api/timetable/').then(function(r) { return r.json(); }).then(function(data) {
+                    timetableData = data || [];
+                    renderTimetable(timetableData);
+                }).catch(function() {
+                    container.innerHTML = '<p class="empty-msg">Could not load timetable.</p>';
+                });
+            }
+
+            document.querySelectorAll('.btn-perspective').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.btn-perspective').forEach(function(b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    currentPerspective = btn.getAttribute('data-perspective');
+                    renderTimetable(timetableData);
+                });
+            });
+            document.getElementById('lecturer-filter').addEventListener('change', function() { renderTimetable(timetableData); });
+            document.getElementById('class-filter').addEventListener('change', function() { renderTimetable(timetableData); });
+
+            function loadClassDropdown() {
+                var dropdown = document.getElementById('class-code');
+                fetch(API_BASE + '/api/classes/').then(function(r) { return r.json(); }).then(function(data) {
+                    dropdown.innerHTML = '<option value="">Select class</option>';
+                    if (data && data.length > 0) {
+                        data.forEach(function(c) {
+                            dropdown.innerHTML += '<option value="' + c.code + '">' + c.code + ' - ' + c.name + '</option>';
+                        });
+                    }
+                }).catch(function() {
+                    console.log('Could not load classes for dropdown.');
+                });
+            }
+
+            loadSubjects();
+            loadClasses();
+            loadClassDropdown();
+            loadTimetable();
+
+            // Fix CSS-linter complaints: set progress bar width via JS (no template tokens in CSS).
+            document.querySelectorAll('.progress-outer').forEach(function(el) {
+                var val = parseFloat(el.getAttribute('data-progress') || '0');
+                if (isNaN(val) || val < 0) val = 0;
+                if (val > 100) val = 100;
+                var inner = el.querySelector('.progress-inner');
+                if (inner) inner.style.width = String(val) + '%';
+            });
+        })();
+    </script>
+</body>
+</html>

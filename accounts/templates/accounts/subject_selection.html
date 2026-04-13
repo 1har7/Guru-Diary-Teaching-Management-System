@@ -1,0 +1,102 @@
+
+<div class="subject-selection">
+    <h3>Select Subjects and Classes</h3>
+    <form id="subject-selection-form">
+        {% csrf_token %}
+        <div class="field">
+            <label for="subject">Available subjects</label>
+            <select class="select" id="subject" name="subject" required>
+                <option value="">Select a subject</option>
+                {% for subject in available_subjects %}
+                <option value="{{ subject.id }}">{{ subject.name }} - {{ subject.class_assigned.name }} ({{ subject.subject_type|default:"theory" }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Select Subject</button>
+    </form>
+
+    <h4>Your Selected Subjects:</h4>
+    <ul id="selected-subjects">
+        {% for selection in user_selections %}
+        <li data-id="{{ selection.id }}">
+            <span>{{ selection.subject.code }} - {{ selection.subject.name }} ({{ selection.subject.class_assigned.name }})</span>
+            <button type="button" class="btn btn-danger btn-sm delete-subject" data-id="{{ selection.id }}">Remove</button>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+document.getElementById('subject-selection-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('{% url "subject_selection" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Reload to show updated selections
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while selecting the subject.');
+    });
+});
+
+// Remove selected subject
+document.querySelectorAll('.delete-subject').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var selectionId = this.getAttribute('data-id');
+        if (!selectionId) return;
+        if (!confirm('Remove this subject from your selection?')) return;
+
+        fetch('{% url "subject_selection" %}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ selection_id: selectionId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while removing the subject.');
+        });
+    });
+});
+</script>
+
+<style>
+.subject-selection {
+    max-width: 760px;
+    margin: 0 auto;
+}
+#selected-subjects {
+    padding-left: 18px;
+}
+
+#selected-subjects li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+</style>
