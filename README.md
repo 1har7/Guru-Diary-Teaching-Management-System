@@ -1,4 +1,4 @@
-# Guru Diary Teaching Management System
+Guru Diary – Teaching Management System (Django Web Application)
 
 ## 📌 Project Overview
 The Guru Diary Teaching Management System is a web-based application developed to simplify academic management within educational institutions. 
